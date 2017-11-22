@@ -11,7 +11,7 @@ public class UndirectedGraph {
     private HashMap<Integer, Integer> degreeMap;
 
     public UndirectedGraph(MutableGraph<Integer> graph) {
-        this.graph = graph;
+        //this.graph = graph;
         //this.degreeMap = graph.nodes().stream().forEach(x -> );
     }
 }
