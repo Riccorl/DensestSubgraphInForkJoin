@@ -76,13 +76,4 @@ buildNumber.properties
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
-.gitignore
-.gradle/
-.idea/
-data/.vscode/
-data/dummy_graph.txt
-data/facebook/
-data/facebook_combined.txt
-densestsubgraph.iml
-pom.xml
-src/
+
