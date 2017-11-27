@@ -1,41 +1,65 @@
 package it.ric.uny.densestsubgraph;
 
 import com.google.common.graph.MutableGraph;
-import com.sun.xml.internal.ws.api.streaming.XMLStreamWriterFactory;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
-
+import it.ric.uny.densestsubgraph.utils.GraphParser;
 import java.io.IOException;
-import java.util.SortedMap;
-import java.util.concurrent.ForkJoinPool;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.TreeMap;
 
 public class Test {
 
-    public static void main(String[] args) {
+  public static void main(String[] args) {
 
-        MutableGraph<Integer> graphGuava = null;
-        //String filename = "data/dummy_graph.txt";
-        //String filename = "data/facebook_combined.txt";
-        //String filename = "data/ca-AstroPh.txt";
-        String filename = "data/roadNet-CA.txt";
-        SortedMap<Integer, Integer> map = GraphParser.toMap(filename);
+    MutableGraph<Integer> graphGuava = null;
+    //String filename = "data/dummy_graph.txt";
+    //String filename = "data/facebook_combined.txt";
+    String filename = "data/ca-CondMat.txt";
+    //String filename = "data/ca-AstroPh.txt";
+    //String filename = "data/roadNet-CA.txt";
 
-        long startTime = System.currentTimeMillis();
-        Graph<Integer, DefaultEdge> graph = ForkJoinPool.commonPool().invoke(new UndirectedGraph(map));
-        long endTime = System.currentTimeMillis();
+    int node = 0;
 
-        double time = endTime - startTime;
-        System.out.println("Parallel Time: " + time + " ms");
+    /*try {
+      graphGuava = GraphParser.parseGuava(filename);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }*/
 
-        //int degree = graph.degree(0);
-        startTime = System.currentTimeMillis();
-        GraphParser.parseGuava(map);
-        //graph = GraphParser.parseGuava(filename);
+    /*long startTime = System.currentTimeMillis();
+    int deg = graphGuava.degree(node);
+    long endTime = System.currentTimeMillis();
+    double time = endTime - startTime;
+    System.out.println("Guava Degree: " + deg);
+    System.out.println("Guava Time: " + time + "ms");
+    */
 
-        endTime = System.currentTimeMillis();
+    UndirectedGraph myGraph = new UndirectedGraph(filename);
+    UndirectedGraph myGraphParallel = new UndirectedGraph(filename);
 
-        time = endTime - startTime;
+    long startTime = System.currentTimeMillis();
+    myGraph.degreePrepare();
+    long endTime = System.currentTimeMillis();
+    double time = endTime - startTime;
+    System.out.println("Sequential Time: " + time + "ms");
 
-        System.out.println("Guava Time: " + time + " ms");
-    }
+    startTime = System.currentTimeMillis();
+    myGraphParallel.degreePrepareParallel();
+    endTime = System.currentTimeMillis();
+    double parTime = endTime - startTime;
+    System.out.println("Parallel Time: " + parTime + "ms");
+
+    // Seq
+    int degSeq = myGraph.degree(node);
+    System.out.println("Degree Sequential: " + degSeq);
+
+    //System.out.println(myGraph.getGraph());
+
+    // Parallel
+    int degPar = myGraphParallel.degree(node);
+    System.out.println("Degree Parallel: " + degPar);
+
+    //Speedup
+    System.out.println("Speedup: " + time/parTime);
+  }
 }

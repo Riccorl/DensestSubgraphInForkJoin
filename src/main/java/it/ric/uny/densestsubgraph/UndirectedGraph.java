@@ -1,62 +1,114 @@
 package it.ric.uny.densestsubgraph;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Stream;
+import javax.sound.midi.Soundbank;
 
-import org.jgrapht.Graph;
-import org.jgrapht.Graphs;
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.Pseudograph;
+public class UndirectedGraph implements Graph {
 
-import java.util.SortedMap;
-import java.util.concurrent.RecursiveTask;
+  private static final String COMMENT_CHAR = "#";
 
-public class UndirectedGraph extends RecursiveTask<Graph<Integer, DefaultEdge>>{
+  private HashMap<Integer, HashSet<Integer>> graph;
+  private HashMap<Integer, Integer> degreeMap;
 
-    private SortedMap<Integer, Integer> rows;
-    private int low;
-    private int high;
-    private int cutoff;
+  public UndirectedGraph(String filename) {
 
-    public UndirectedGraph(SortedMap<Integer, Integer> rows) {
-        this.rows = rows;
-        this.high = this.rows.keySet().size();
-        this.cutoff = this.high/16;
+    this.graph = new HashMap<>();
+    this.degreeMap = new HashMap<>();
+
+    this.fileToGraph(filename);
+    //this.degreePrepare();
+  }
+
+  @Override
+  public int degree(int n) {
+    return degreeMap.get(n);
+  }
+
+  private void fileToGraph(String filename) {
+    List<String> rows = this.parse(filename);
+
+    rows.forEach(x -> {
+
+      if (x.startsWith(COMMENT_CHAR)) return;
+
+      String[] row = x.split("[\t ]");
+      int n1 = Integer.parseInt(row[0]);
+      int n2 = Integer.parseInt(row[1]);
+
+      degreeMap.put(n1, 0);
+      degreeMap.put(n2, 0);
+
+      if (!graph.containsKey(n1)) {
+        graph.put(n1, new HashSet<>());
+      }
+      if (!graph.containsKey(n2)) {
+        graph.put(n2, new HashSet<>());
+      }
+
+      HashSet<Integer> map = graph.get(n1);
+      map.add(n2);
+      graph.put(n1, map);
+
+    });
+  }
+
+  public void degreePrepareParallel() {
+    this.degreeMap = prepareParallel(degreeMap.keySet());
+  }
+
+  private HashMap<Integer, Integer> prepareParallel(Set<Integer> degreeSet) {
+
+    HashMap<Integer, Integer> degreeMap = ForkJoinPool.commonPool()
+        .invoke(new ParallelDegree(degreeSet, graph));
+
+    return degreeMap;
+  }
+
+  public void degreePrepare() {
+    this.degreeMap = prepare(degreeMap);
+  }
+
+  private HashMap<Integer, Integer> prepare(HashMap<Integer, Integer> degreeMap) {
+
+    for (int x : degreeMap.keySet()) {
+      final int[] value = {degreeMap.containsValue(x) ? degreeMap.get(x) : 0};
+
+      graph.forEach((node, edges) -> value[0] += edges.stream()
+          .filter(nodeToFilter -> nodeToFilter.equals(x)).count());
+      value[0] += graph.get(x).size();
+      degreeMap.put(x, value[0]);
     }
 
-    public UndirectedGraph(SortedMap<Integer, Integer> rows, int high, int cutoff) {
-        this.rows = rows;
-        this.high = high;
-        this.cutoff = cutoff;
+    return degreeMap;
+  }
+
+  private List<String> parse(String filename) {
+
+    List<String> rows = new ArrayList<>();
+
+    try (Stream<String> stream = Files.lines(Paths.get(filename))) {
+      stream.forEach(rows::add);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
 
-    @Override
-    protected Graph<Integer, DefaultEdge> compute() {
-        Graph<Integer, DefaultEdge> g = new Pseudograph<>(DefaultEdge.class);
+    return rows;
+  }
 
-        if (high - low < cutoff) {
-            for (Integer x : rows.keySet()){
-                int n1 = x;
-                int n2 = rows.get(x);
-                g.addVertex(n1);
-                g.addVertex(n2);
-                g.addEdge(n1,n2);
-            }
+  public HashMap<Integer, Integer> getDegreeMap() {
+    return degreeMap;
+  }
 
-            return g;
-        }
-
-        SortedMap<Integer, Integer> lowList = rows.subMap(low,(high+low)/2);
-        SortedMap<Integer, Integer> highList = rows.subMap((high+low)/2, high);
-        //List<String> highList = rows.stream().skip((high+low)/2).collect(Collectors.toList());
-
-        UndirectedGraph left = new UndirectedGraph(lowList, lowList.keySet().size(), this.cutoff);
-        UndirectedGraph right = new UndirectedGraph(lowList, highList.keySet().size(), this.cutoff);
-
-        left.fork();
-        g = right.compute();
-        Graph<Integer, DefaultEdge> gLeft = left.join();
-
-        Graphs.addGraph(g, gLeft);
-
-        return g;
-    }
+  public HashMap<Integer, HashSet<Integer>> getGraph() {
+    return graph;
+  }
 }
