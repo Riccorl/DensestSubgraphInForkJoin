@@ -2,32 +2,51 @@ package it.ric.uny.densestsubgraph;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveTask;
 import java.util.stream.Collectors;
 
 public class ParallelDegree extends RecursiveTask<HashMap<Integer, Integer>> {
 
-  private HashMap<Integer, HashSet<Integer>> graph;
-  private Set<Integer> degreeSet;
+  // Set di nodi
+  private Set<Integer> nodeSet;
+
+  // Mappa delle connessioni
+  // Chiave: Nodo
+  // Valore: Nodi adiacenti
+  private HashMap<Integer, HashSet<Integer>> connections;
+
   private int low;
   private int high;
   private int cutoff;
 
-  public ParallelDegree(Set<Integer> degreeSet,
-      HashMap<Integer, HashSet<Integer>> graph) {
+  public ParallelDegree(Set<Integer> nodeSet,
+      HashMap<Integer, HashSet<Integer>> connections) {
 
-    this.graph = graph;
-    this.degreeSet = degreeSet;
-    this.high = this.degreeSet.size();
+    this.nodeSet = nodeSet;
+    this.connections = connections;
+    this.high = this.nodeSet.size();
     this.cutoff = this.high / 4;
   }
 
-  public ParallelDegree(
-      HashMap<Integer, HashSet<Integer>> graph, Set<Integer> degreeSet, int high,
-      int cutoff) {
-    this.graph = graph;
-    this.degreeSet = degreeSet;
+  public ParallelDegree(Set<Integer> nodeSet,
+      HashMap<Integer, HashSet<Integer>> connections,
+      int parallelism) {
+
+    this.nodeSet = nodeSet;
+    this.connections = connections;
+    this.high = this.nodeSet.size();
+    this.cutoff = this.high / parallelism;
+  }
+
+  private ParallelDegree(Set<Integer> nodeSet,
+      HashMap<Integer, HashSet<Integer>> connections,
+      int high, int cutoff) {
+
+    this.nodeSet = nodeSet;
+    this.connections = connections;
     this.high = high;
     this.cutoff = cutoff;
   }
@@ -35,34 +54,41 @@ public class ParallelDegree extends RecursiveTask<HashMap<Integer, Integer>> {
   @Override
   protected HashMap<Integer, Integer> compute() {
 
-    HashMap<Integer, Integer> degreeMap = new HashMap<>();
+    // Sequential
+    if (nodeSet.size() < cutoff) {
 
-    if (high - low < cutoff) {
-      for (int x : degreeSet) {
-        //final int[] value = {degreeMap.containsValue(x) ? degreeMap.get(x) : 0};
+      HashMap<Integer, Integer> degreeMap = new HashMap<>();
+      for (int x : nodeSet) {
 
-        final int[] value = {0};
-        graph.forEach((node, edges) -> value[0] += edges.stream()
-            .filter(nodeToFilter -> nodeToFilter.equals(x)).count());
-        value[0] += graph.get(x).size();
-        degreeMap.put(x, value[0]);
+        // Il grado di un nodo è banalmente la dimensione dell'
+        // insieme contenente i nodi adiacenti.
+        int value = connections.get(x).size();
+        degreeMap.put(x, value);
       }
 
       return degreeMap;
     }
 
-    Set<Integer> degreeLeft = degreeSet.stream().limit((high+low)/2).collect(Collectors.toSet());
-    Set<Integer> degreeRight = degreeSet.stream().skip((high+low)/2).collect(Collectors.toSet());
+    // Parallel
 
-    ParallelDegree left = new ParallelDegree(graph, degreeLeft, degreeLeft.size(), cutoff);
-    ParallelDegree right = new ParallelDegree(graph, degreeRight, degreeRight.size(), cutoff);
+    // Divisione dell' insieme più grande in due più piccoli
+    Set<Integer> degreeLeft = nodeSet.stream().limit(nodeSet.size() / 2).collect(Collectors.toSet());
+    Set<Integer> degreeRight = nodeSet.stream().skip(nodeSet.size() / 2).collect(Collectors.toSet());
+
+    ParallelDegree left = new ParallelDegree(degreeLeft,
+        connections, degreeLeft.size(), cutoff);
+    ParallelDegree right = new ParallelDegree(degreeRight,
+        connections, degreeRight.size(), cutoff);
+
 
     left.fork();
     HashMap<Integer, Integer> degreeMapRight = right.compute();
     HashMap<Integer, Integer> degreeMapLeft = left.join();
 
-    degreeMap.putAll(degreeMapRight);
-    degreeMap.putAll(degreeMapLeft);
+    // Merge dei risultati
+    HashMap<Integer, Integer> degreeMap = new HashMap<>(degreeMapRight);
+    degreeMapLeft.forEach((key, value) -> degreeMap
+        .merge(key, value, (v1, v2) -> v1 + v2));
 
     return degreeMap;
   }

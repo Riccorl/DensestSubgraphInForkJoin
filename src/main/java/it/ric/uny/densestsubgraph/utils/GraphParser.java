@@ -50,11 +50,11 @@ public class GraphParser {
   }
 
   public static MutableGraph<Integer> parseGuava(String filename) throws IOException {
-    MutableGraph<Integer> graph = GraphBuilder.undirected().build();
+    MutableGraph<Integer> graph = GraphBuilder.undirected().allowsSelfLoops(true).build();
 
     try (Stream<String> stream = Files.lines(Paths.get(filename))) {
       stream.forEach(x -> {
-        String[] row = x.split(" ");
+        String[] row = x.split("[\t ]");
         graph.putEdge(Integer.parseInt(row[0]), Integer.parseInt(row[1]));
       });
       return graph;

@@ -12,54 +12,57 @@ public class Test {
   public static void main(String[] args) {
 
     MutableGraph<Integer> graphGuava = null;
-    //String filename = "data/dummy_graph.txt";
+    String filename = "data/dummy_graph.txt";
     //String filename = "data/facebook_combined.txt";
-    String filename = "data/ca-CondMat.txt";
+    //String filename = "data/ca-CondMat.txt";
     //String filename = "data/ca-AstroPh.txt";
     //String filename = "data/roadNet-CA.txt";
 
-    int node = 0;
+    int node = 0; //84424; //1; //73647
 
-    /*try {
+    try {
       graphGuava = GraphParser.parseGuava(filename);
     } catch (IOException e) {
       e.printStackTrace();
-    }*/
-
-    /*long startTime = System.currentTimeMillis();
-    int deg = graphGuava.degree(node);
-    long endTime = System.currentTimeMillis();
-    double time = endTime - startTime;
-    System.out.println("Guava Degree: " + deg);
-    System.out.println("Guava Time: " + time + "ms");
-    */
-
-    UndirectedGraph myGraph = new UndirectedGraph(filename);
-    UndirectedGraph myGraphParallel = new UndirectedGraph(filename);
+    }
 
     long startTime = System.currentTimeMillis();
-    myGraph.degreePrepare();
+    int deg = graphGuava.degree(node);
     long endTime = System.currentTimeMillis();
-    double time = endTime - startTime;
-    System.out.println("Sequential Time: " + time + "ms");
+    double guavaTime = endTime - startTime;
+    System.out.println("Guava Degree: " + deg);
+    System.out.println("Guava Time: " + guavaTime + "ms");
+
+
+    UndirectedGraph myGraph = new UndirectedGraph(filename);
+    //UndirectedGraph myGraphParallel = new UndirectedGraph(filename);
 
     startTime = System.currentTimeMillis();
-    myGraphParallel.degreePrepareParallel();
+    myGraph.degreePrepare();
     endTime = System.currentTimeMillis();
-    double parTime = endTime - startTime;
-    System.out.println("Parallel Time: " + parTime + "ms");
+    double time = endTime - startTime;
+    System.out.println("Sequential Time: " + time + "ms");
+    System.out.println("Sequential Time: " + time + "ms");
 
-    // Seq
+    //startTime = System.currentTimeMillis();
+    //myGraph.degreePrepareParallel();
+    //endTime = System.currentTimeMillis();
+    //double parTime = endTime - startTime;
+    //System.out.println("Parallel Time: " + parTime + "ms");
+
+    //Seq
     int degSeq = myGraph.degree(node);
     System.out.println("Degree Sequential: " + degSeq);
+
+    System.out.println(myGraph.getConnections());
 
     //System.out.println(myGraph.getGraph());
 
     // Parallel
-    int degPar = myGraphParallel.degree(node);
-    System.out.println("Degree Parallel: " + degPar);
+    //int degPar = myGraph.degree(node);
+    //System.out.println("Degree Parallel: " + degPar);
 
-    //Speedup
-    System.out.println("Speedup: " + time/parTime);
+    //Speedupdd
+    //System.out.println("Speedup: " + time/parTime);
   }
 }
