@@ -10,5 +10,4 @@ public interface Graph {
    * @return    degree of n
    */
   int degree(int n);
-  Graph inducedSubgraph(Set<Integer> nodes);
 }

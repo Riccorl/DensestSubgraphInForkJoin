@@ -1,12 +1,41 @@
 package it.ric.uny.densestsubgraph;
 
+import java.util.Objects;
+
 public class Edge {
 
-  private int start;
-  private int end;
+    private int u;
+    private int v;
 
-  public Edge(int start, int end) {
-    this.start = start;
-    this.end = end;
-  }
+    public Edge(int u, int v) {
+        this.u = u;
+        this.v = v;
+    }
+
+    public int getU() {
+        return u;
+    }
+
+    public int getV() {
+        return v;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Edge edge = (Edge) o;
+        return u == edge.u &&
+            v == edge.v;
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(u, v);
+    }
 }
