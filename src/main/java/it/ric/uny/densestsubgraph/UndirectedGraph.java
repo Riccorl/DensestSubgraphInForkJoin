@@ -18,34 +18,55 @@ public class UndirectedGraph implements Graph {
   private static final String COMMENT_CHAR = "#";
   private static ForkJoinPool fjPool = new ForkJoinPool();
 
+  // Grafo.
   private HashMap<Integer, HashSet<Integer>> graph;
+
+  // Grafo con archi duplicati per ogni nodo, utile per calcolo del grado.
+  private HashMap<Integer, HashSet<Integer>> connections;
+
+  // Grado associato ad ogni nodo (u, deg(u)).
   private HashMap<Integer, Integer> degreeMap;
   private HashMap<Integer, Integer> degreeMapPar;
-  private HashMap<Integer, HashSet<Integer>> connections;
+
+  // Densità del grafo
+  private int graphDensity;
 
   public UndirectedGraph(String filename) {
 
     this.graph = new HashMap<>();
-    this.degreeMap = new HashMap<>();
-    this.degreeMapPar = new HashMap<>();
     this.connections = new HashMap<>();
 
+    this.degreeMap = new HashMap<>();
+    this.degreeMapPar = new HashMap<>();
+
     this.fileToGraph(filename);
+
+    graphDensity = calcDensity(graph);
+  }
+
+  private int calcDensity(HashMap<Integer, HashSet<Integer>> graph) {
+
+    int nEdge = graph.keySet().stream().mapToInt(x -> x).map(x -> graph.get(x).size()).sum();
+    int nNode = graph.keySet().size() * (graph.keySet().size() - 1);
+
+    return nEdge / nNode;
+  }
+
+  public HashMap<Integer, HashSet<Integer>> inducedEdge(HashSet<Integer> nodes) {
+    HashMap<Integer, HashSet<Integer>> square = new HashMap<>();
+
+    for (Integer n : nodes) {
+      HashSet<Integer> intersect = new HashSet<>(connections.get(n));
+      intersect.retainAll(nodes);
+      square.put(n, intersect);
+    }
+
+    return square;
   }
 
   @Override
   public int degree(int n) {
     return degreeMap.get(n);
-  }
-
-  @Override
-  public Graph inducedSubgraph(Set<Integer> nodes) {
-
-    HashMap<Integer, HashSet<Integer>> subGraph = new HashMap<>();
-    connections.forEach((x, y) -> {
-      if (nodes.contains(x)) subGraph.put(x, new HashSet<>());
-    });
-    return null;
   }
 
   /**
@@ -64,7 +85,7 @@ public class UndirectedGraph implements Graph {
   private HashMap<Integer, Integer> prepareParallel(Set<Integer> degreeSet) {
 
     int parallelism = fjPool.getParallelism();
-    degreeMapPar = fjPool.invoke(new ParallelDegree(degreeSet, graph, connections, parallelism));
+    degreeMapPar = fjPool.invoke(new ParallelDegree(degreeSet, connections, parallelism));
 
     return degreeMapPar;
   }
@@ -163,5 +184,9 @@ public class UndirectedGraph implements Graph {
 
   public HashMap<Integer, HashSet<Integer>> getConnections() {
     return connections;
+  }
+
+  public int getGraphDensity() {
+    return graphDensity;
   }
 }

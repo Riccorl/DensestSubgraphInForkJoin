@@ -42,27 +42,26 @@ public class Test {
     endTime = System.currentTimeMillis();
     double time = endTime - startTime;
     System.out.println("Sequential Time: " + time + "ms");
-    System.out.println("Sequential Time: " + time + "ms");
 
-    //startTime = System.currentTimeMillis();
+    startTime = System.currentTimeMillis();
     //myGraph.degreePrepareParallel();
-    //endTime = System.currentTimeMillis();
-    //double parTime = endTime - startTime;
-    //System.out.println("Parallel Time: " + parTime + "ms");
+    endTime = System.currentTimeMillis();
+    double parTime = endTime - startTime;
+    System.out.println("Parallel Time: " + parTime + "ms");
 
     //Seq
     int degSeq = myGraph.degree(node);
     System.out.println("Degree Sequential: " + degSeq);
 
-    System.out.println(myGraph.getConnections());
+    // Induced Edge Set
 
-    //System.out.println(myGraph.getGraph());
+    HashSet<Integer> s = new HashSet<>();
+    s.add(0);
+    s.add(1);
+    s.add(2);
 
-    // Parallel
-    //int degPar = myGraph.degree(node);
-    //System.out.println("Degree Parallel: " + degPar);
-
-    //Speedupdd
+    System.out.println(myGraph.inducedEdge(s));
+    //Speedup
     //System.out.println("Speedup: " + time/parTime);
   }
 }
