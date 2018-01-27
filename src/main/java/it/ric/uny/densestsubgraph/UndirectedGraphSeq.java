@@ -1,25 +1,15 @@
 package it.ric.uny.densestsubgraph;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
-import javax.sound.midi.Soundbank;
 
-public class UndirectedGraph implements Graph {
+public class UndirectedGraphSeq implements Graph {
 
   private static final String COMMENT_CHAR = "#";
-  private static ForkJoinPool fjPool = new ForkJoinPool();
 
   // Grafo.
   private HashMap<Integer, HashSet<Integer>> graph;
@@ -28,15 +18,17 @@ public class UndirectedGraph implements Graph {
   private HashMap<Integer, HashSet<Integer>> connections;
 
   // Grado associato ad ogni nodo (u, deg(u)).
-  private HashMap<Integer, Integer> degreeMapPar;
+  private HashMap<Integer, Integer> degreeMap;
 
   // Densità del grafo
   private int graphDensity;
 
-  public UndirectedGraph(String filename) {
+  public UndirectedGraphSeq(String filename) {
 
     this.graph = new HashMap<>();
     this.connections = new HashMap<>();
+
+    this.degreeMap = new HashMap<>();
 
     this.fileToGraph(filename);
 
@@ -65,24 +57,30 @@ public class UndirectedGraph implements Graph {
 
   @Override
   public int degree(int n) {
-    return degreeMapPar.get(n);
+    return degreeMap.get(n);
   }
 
   /**
-   * Wrapper for prepareParallel method
+   * Wrapper for prepare method
    */
-  public void degreePrepareParallel() {
-    this.degreeMapPar = prepareParallel();
+  public void degreePrepare() {
+    this.degreeMap = prepare(degreeMap);
   }
 
   /**
-   * Precalculation of all nodes' degree in parallel
+   * Precalculation of all nodes' degree.
    *
+   * @param degreeMap Empty map of nodes and relative degree
    * @return degreeMap with degrees
    */
-  private HashMap<Integer, Integer> prepareParallel() {
+  private HashMap<Integer, Integer> prepare(HashMap<Integer, Integer> degreeMap) {
 
-    return fjPool.invoke(new ParallelDegree(connections));
+    for (Integer x : degreeMap.keySet()) {
+      int value = connections.get(x).size();
+      degreeMap.put(x, value);
+    }
+
+    return degreeMap;
   }
 
   /**
@@ -92,19 +90,7 @@ public class UndirectedGraph implements Graph {
    */
   private void fileToGraph(String filename) {
 
-    try (Scanner sc = new Scanner(new File(filename), "UTF-8")) {
-      while (sc.hasNextLine()) {
-        String[] row = sc.nextLine().split("[\t ]");
-
-        int n1 = Integer.parseInt(row[0]);
-        int n2 = Integer.parseInt(row[1]);
-
-        addEdge(n1, n2);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-/*    try (Stream<String> stream = Files.lines(Paths.get(filename))) {
+    try (Stream<String> stream = Files.lines(Paths.get(filename))) {
       stream.forEach(x -> {
 
         if (x.startsWith(COMMENT_CHAR)) {
@@ -112,19 +98,15 @@ public class UndirectedGraph implements Graph {
         }
 
         String[] row = x.split("[\t ]");
-        int n1 = Integer.parseInt(row[0]);
-        int n2 = Integer.parseInt(row[1]);
-
-        addEdge(n1, n2);
+        addEdge(Integer.parseInt(row[0]), Integer.parseInt(row[1]));
 
       });
 
     } catch (IOException e) {
       e.printStackTrace();
-    }*/
+    }
 
-    System.out.println("Lettura ok");
-
+    System.out.println("Lettura Seq ok");
   }
 
   private void addEdge(int u, int v) {
@@ -139,12 +121,15 @@ public class UndirectedGraph implements Graph {
     connections.get(u).add(v);
     connections.get(v).add(u);
 
+    degreeMap.put(u, 0);
+    degreeMap.put(v, 0);
+
   }
 
   //-------------------------------------------- GETTER --------------------------------------------
 
-  public HashMap<Integer, Integer> getDegreeMapPar() {
-    return degreeMapPar;
+  public HashMap<Integer, Integer> getDegreeMap() {
+    return degreeMap;
   }
 
   public HashMap<Integer, HashSet<Integer>> getGraph() {
@@ -158,4 +143,5 @@ public class UndirectedGraph implements Graph {
   public int getGraphDensity() {
     return graphDensity;
   }
+
 }
