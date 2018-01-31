@@ -1,91 +1,93 @@
 package it.ric.uny.densestsubgraph;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveTask;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class ParallelDegree extends RecursiveTask<HashMap<Integer, Integer>> {
 
-  private static final int CUTOFF = 5000;
+    private static final int CUTOFF = 10000000;
 
-  // Set di nodi
-  private ArrayList<Integer> nodeSet;
+    // Set di nodi
+    private ArrayList<Integer> nodeSet;
 
-  // Mappa delle connessioni
-  // Chiave: Nodo
-  // Valore: Nodi adiacenti
-  private HashMap<Integer, HashSet<Integer>> connections;
+    // Mappa delle connessioni
+    // Chiave: Nodo
+    // Valore: Nodi adiacenti
+    private HashMap<Integer, HashSet<Integer>> connections;
 
-  private HashMap<Integer, Integer> degreeMap;
+    private int low;
+    private int high;
 
-  private int low;
-  private int high;
+    public ParallelDegree(HashMap<Integer, HashSet<Integer>> connections,
+        ArrayList<Integer> nodeList) {
 
-  public ParallelDegree(HashMap<Integer, HashSet<Integer>> connections) {
+        this.nodeSet = nodeList;
 
-    this.nodeSet = new ArrayList<>(connections.keySet());
-    this.connections = connections;
-    this.high = this.nodeSet.size();
-    this.degreeMap = new HashMap<>();
-  }
-
-  private ParallelDegree(ArrayList<Integer> nodeSet,
-      HashMap<Integer, HashSet<Integer>> connections,
-      HashMap<Integer, Integer> degreeMap,
-      int high) {
-
-    this.nodeSet = nodeSet;
-    this.connections = connections;
-    this.high = high;
-    this.degreeMap = degreeMap;
-  }
-
-  @Override
-  protected HashMap<Integer, Integer>  compute() {
-
-    // Sequential
-    if (nodeSet.size() < CUTOFF) {
-
-      for (int x : nodeSet) {
-
-        // Il grado di un nodo è banalmente la dimensione dell'insieme contenente i nodi adiacenti.
-        int value = connections.get(x).size();
-        degreeMap.put(x, value);
-      }
-
-      return degreeMap;
+        this.connections = connections;
+        this.high = this.nodeSet.size();
     }
 
-    // Parallel
+    private ParallelDegree(ArrayList<Integer> nodeSet,
+        HashMap<Integer, HashSet<Integer>> connections,
+        int high) {
 
-    // Divisione dell' insieme più grande in due più piccoli
+        this.nodeSet = nodeSet;
+        this.connections = connections;
+        this.high = high;
+    }
 
-    ArrayList<Integer> degreeLeft = new ArrayList<>(nodeSet.subList(0, nodeSet.size() / 2));
-    ArrayList<Integer> degreeRight = new ArrayList<>(
-        nodeSet.subList(nodeSet.size() / 2, nodeSet.size()));
+    @Override
+    protected HashMap<Integer, Integer> compute() {
 
-    ParallelDegree left = new ParallelDegree(degreeLeft,
-        connections, degreeMap, degreeLeft.size());
-    ParallelDegree right = new ParallelDegree(degreeRight,
-        connections, degreeMap, degreeRight.size());
+        // Sequential
+        if (nodeSet.size() < CUTOFF) {
+            HashMap<Integer, Integer> degreeMap = new HashMap<>();
+            for (int x : nodeSet) {
 
-    left.fork();
-    HashMap<Integer, Integer> degreeMapRight = right.compute();
-    HashMap<Integer, Integer> degreeMapLeft = left.join();
+                // Il grado di un nodo è banalmente la dimensione dell'insieme contenente i nodi adiacenti.
+                int value = connections.get(x).size();
+                degreeMap.put(x, value);
+            }
 
-    // Merge dei risultati
+            return degreeMap;
+        }
 
-    // Merge con HashMap
-    /*HashMap<Integer, Integer> degreeMap = new HashMap<>(degreeMapRight);
-    degreeMapLeft.forEach((key, value) -> degreeMap
-        .merge(key, value, (v1, v2) -> v1 + v2));*/
+        // Parallel
 
-    return degreeMap;
-  }
+        // Divisione dell' insieme più grande in due più piccoli
+
+        double startTimeD = System.nanoTime();
+
+        ArrayList<Integer> degreeLeft = new ArrayList<>(nodeSet.subList(0, nodeSet.size() / 2));
+        ArrayList<Integer> degreeRight = new ArrayList<>(nodeSet.subList(nodeSet.size() / 2,
+            nodeSet.size()));
+
+        double endTimeD = System.nanoTime();
+        double timeD = (endTimeD - startTimeD)/1000000.0;
+        //System.out.println("Arraylist split: " + timeD + "ms");
+
+        ParallelDegree left = new ParallelDegree(degreeLeft,
+            connections, degreeLeft.size());
+        ParallelDegree right = new ParallelDegree(degreeRight,
+            connections, degreeRight.size());
+
+        left.fork();
+        HashMap<Integer, Integer> degreeMapRight = right.compute();
+        HashMap<Integer, Integer> degreeMapLeft = left.join();
+
+        // Merge dei risultati
+        double startTime = System.nanoTime();
+
+        HashMap<Integer, Integer> degreeMap = new HashMap<>(degreeMapRight);
+        degreeMapLeft.forEach((k, v) -> degreeMap.merge(k, v, (x,y) -> x+y ));
+
+        double endTime = System.nanoTime();
+        double time = (endTime - startTime)/1000000.0;
+        //System.out.println("HashMap merge: " + time + "ms");
+
+        return degreeMap;
+    }
 }

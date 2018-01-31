@@ -13,51 +13,61 @@ import java.util.stream.Stream;
 
 public class GraphParser {
 
-  public static HashMap<Integer, HashSet<Integer>> toGraph(String filename) {
+    private static final String COMMENT_CHAR = "#";
 
-    HashMap<Integer, HashSet<Integer>> graph = new HashMap<>();
-    List<String> rows = parse(filename);
 
-    rows.forEach(x -> {
-      String[] row = x.split("[\t ]");
-      int n1 = Integer.parseInt(row[0]);
-      int n2 = Integer.parseInt(row[1]);
-      if (!graph.containsKey(n1)) {
-        HashSet<Integer> set = new HashSet<>();
-        set.add(n2);
-        graph.put(n1, set);
-      } else {
-        HashSet<Integer> set = graph.get(n1);
-        set.add(n2);
-        graph.put(n1, set);
-      }
-    });
+    public static HashMap<Integer, HashSet<Integer>> toGraph(String filename) {
 
-    return graph;
-  }
+        HashMap<Integer, HashSet<Integer>> graph = new HashMap<>();
+        List<String> rows = parse(filename);
 
-  private static List<String> parse(String filename) {
+        rows.forEach(x -> {
+            if (x.startsWith(COMMENT_CHAR)) {
+                return;
+            }
 
-    List<String> rows = new ArrayList<>();
+            String[] row = x.split("[\t ]");
+            int n1 = Integer.parseInt(row[0]);
+            int n2 = Integer.parseInt(row[1]);
+            if (!graph.containsKey(n1)) {
+                HashSet<Integer> set = new HashSet<>();
+                set.add(n2);
+                graph.put(n1, set);
+            } else {
+                HashSet<Integer> set = graph.get(n1);
+                set.add(n2);
+                graph.put(n1, set);
+            }
+        });
 
-    try (Stream<String> stream = Files.lines(Paths.get(filename))) {
-      stream.forEach(rows::add);
-    } catch (IOException e) {
-      e.printStackTrace();
+        return graph;
     }
 
-    return rows;
-  }
+    private static List<String> parse(String filename) {
 
-  public static MutableGraph<Integer> parseGuava(String filename) throws IOException {
-    MutableGraph<Integer> graph = GraphBuilder.undirected().allowsSelfLoops(true).build();
+        List<String> rows = new ArrayList<>();
 
-    try (Stream<String> stream = Files.lines(Paths.get(filename))) {
-      stream.forEach(x -> {
-        String[] row = x.split("[\t ]");
-        graph.putEdge(Integer.parseInt(row[0]), Integer.parseInt(row[1]));
-      });
-      return graph;
+        try (Stream<String> stream = Files.lines(Paths.get(filename))) {
+            stream.forEach(rows::add);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return rows;
     }
-  }
+
+    public static MutableGraph<Integer> parseGuava(String filename) throws IOException {
+        MutableGraph<Integer> graph = GraphBuilder.undirected().allowsSelfLoops(true).build();
+
+        try (Stream<String> stream = Files.lines(Paths.get(filename))) {
+            stream.forEach(x -> {
+                if (x.startsWith(COMMENT_CHAR)) {
+                    return;
+                }
+                String[] row = x.split("[\t ]");
+                graph.putEdge(Integer.parseInt(row[0]), Integer.parseInt(row[1]));
+            });
+            return graph;
+        }
+    }
 }
