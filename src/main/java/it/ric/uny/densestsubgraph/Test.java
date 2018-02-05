@@ -18,13 +18,13 @@ public class Test {
         //String filename = "data/ca-AstroPh.txt"; // 84424
         //String filename = "data/roadNet-CA.txt"; // 0, nEdge = 2766607
         //String filename = "data/as-skitter.txt"; // nEdges = 11095298
-        //String filename = "data/cit-Patents.txt"; // 3858266, nEdges = 16518948
+        String filename = "data/cit-Patents.txt"; // 3858266, nEdges = 16518948
         //String filename = "data/wiki-topcats.txt"; // 0, nEdges = 28511807
         //String filename = "data/soc-LiveJournal1.txt"; // 0, nEdge = 68993773
         //String filename = "data/gplus_combined.txt"; // 106558284273162270526
 
-        int node = 2;
-        int nEdges = 117185083;
+        int node = 3858266;
+        int nEdges = 2766607;
 
         // Guava
         /*try {
@@ -55,24 +55,28 @@ public class Test {
 
         System.out.println("");*/
 
-        /*UndirectedGraph myGraphParallel = new UndirectedGraph(filename);
+        UndirectedGraph myGraphParallel = new UndirectedGraph(filename);
         // Parallel
-        double startTimeP = System.nanoTime();
-        myGraphParallel.degreePrepareParallel();
-        double endTimeP = System.nanoTime();
-        double parTime = (endTimeP - startTimeP) / 1000000.0;
-        System.out.println("Parallel Time: " + parTime + "ms");
+        for (int i = 0; i < 3; i++) {
+            double startTimeP = System.nanoTime();
+
+            myGraphParallel.degreePrepareParallel();
+
+            double endTimeP = System.nanoTime();
+            double parTime = (endTimeP - startTimeP) / 1000000.0;
+            System.out.println("Parallel Time: " + parTime + "ms");
+        }
 
         int degPar = myGraphParallel.degree(node);
-        System.out.println("Degree Parallel: " + degPar);*/
+        System.out.println("Degree Parallel: " + degPar);
 
-        UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(filename, nEdges);
-        for (int i = 0; i < 1; i++) {
+        /*UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(filename, nEdges);
+        for (int i = 0; i < 3; i++) {
             double startTimeA = System.nanoTime();
 
-            //graphArrays.degreePrepareParallel();
+            graphArrays.degreePrepareParallel();
 
-            graphArrays.degreePrepare();
+            //graphArrays.degreePrepare();
 
             double endTimeA = System.nanoTime();
             double timeA = (endTimeA - startTimeA) / 1000000.0;
@@ -80,9 +84,9 @@ public class Test {
         }
 
 
-        System.out.println("Edge number: " + graphArrays.getEdges().size());
+        System.out.println("Nodes number: " + graphArrays.getNodes().size());
         int degPar = graphArrays.degree(node);
-        System.out.println("Degree Array: " + degPar);
+        System.out.println("Degree Array: " + degPar);*/
 
         // Nodes size
         /*Set<Integer> nodeSet = myGraph.getConnections().keySet();

@@ -126,6 +126,10 @@ public class UndirectedGraphArrays {
         return edges;
     }
 
+    public HashSet<Integer> getNodes() {
+        return nodes;
+    }
+
     public int[] getDegrees() {
         return degrees;
     }

@@ -8,7 +8,7 @@ import java.util.concurrent.RecursiveTask;
 
 public class ParallelDegree extends RecursiveTask<HashMap<Integer, Integer>> {
 
-    private static final int CUTOFF = 10000000;
+    private static final int CUTOFF = 500000;
 
     // Set di nodi
     private ArrayList<Integer> nodeSet;
@@ -59,14 +59,14 @@ public class ParallelDegree extends RecursiveTask<HashMap<Integer, Integer>> {
 
         // Divisione dell' insieme più grande in due più piccoli
 
-        double startTimeD = System.nanoTime();
+        //double startTimeD = System.nanoTime();
 
         ArrayList<Integer> degreeLeft = new ArrayList<>(nodeSet.subList(0, nodeSet.size() / 2));
         ArrayList<Integer> degreeRight = new ArrayList<>(nodeSet.subList(nodeSet.size() / 2,
             nodeSet.size()));
 
-        double endTimeD = System.nanoTime();
-        double timeD = (endTimeD - startTimeD)/1000000.0;
+        //double endTimeD = System.nanoTime();
+        //double timeD = (endTimeD - startTimeD)/1000000.0;
         //System.out.println("Arraylist split: " + timeD + "ms");
 
         ParallelDegree left = new ParallelDegree(degreeLeft,
@@ -86,7 +86,7 @@ public class ParallelDegree extends RecursiveTask<HashMap<Integer, Integer>> {
 
         double endTime = System.nanoTime();
         double time = (endTime - startTime)/1000000.0;
-        //System.out.println("HashMap merge: " + time + "ms");
+        System.out.println("HashMap merge: " + time + "ms");
 
         return degreeMap;
     }
