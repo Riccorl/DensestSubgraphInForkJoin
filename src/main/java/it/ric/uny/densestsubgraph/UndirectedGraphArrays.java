@@ -28,8 +28,9 @@ public class UndirectedGraphArrays {
     // Grado associato ad ogni nodo (u, deg(u)).
     private int[] degrees;
     private int maxNodeValue;
+    private int nEdges;
 
-    public UndirectedGraphArrays(String filename) {
+    public UndirectedGraphArrays(String filename, int nEdges) {
 
         this.connections = new HashMap<>();
         this.nodes = new HashSet<>();
@@ -38,12 +39,19 @@ public class UndirectedGraphArrays {
         this.fileToGraph(filename);
 
         this.maxNodeValue = Collections.max(nodes);
-
-        this.degrees = new int[maxNodeValue];
+        this.nEdges = nEdges;
     }
 
     public int degree(int n) {
         return degrees[n];
+    }
+
+    public void degreePrepare() {
+        degrees = new int[maxNodeValue+1];
+
+        for (Edge x : edges) {
+            degrees[x.getU()] += 1;
+        }
     }
 
     /**
@@ -60,7 +68,7 @@ public class UndirectedGraphArrays {
      */
     private int[] prepareParallel() {
 
-        return fjPool.invoke(new ParallelArrays(edges, maxNodeValue, 28511807));
+        return fjPool.invoke(new ParallelArrays(edges, maxNodeValue, nEdges));
     }
 
     /**

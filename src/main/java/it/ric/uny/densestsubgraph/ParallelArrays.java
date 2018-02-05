@@ -9,7 +9,7 @@ public class ParallelArrays extends RecursiveTask<int[]>{
 
     private final static Logger LOGGER = Logger.getLogger(ParallelArrays.class.getName());
 
-    private static final int CUTOFF = 1000000;
+    private static final int CUTOFF = 3000000;
 
     private ArrayList<Edge> edges;
 
@@ -55,17 +55,17 @@ public class ParallelArrays extends RecursiveTask<int[]>{
         int[] resRight = left.join();
 
         // Merge risultati
-        double startTimeM = System.nanoTime();
+        //double startTimeM = System.nanoTime();
 
         int[] degrees = new int[nodeValue+1];
         for (int i = 0; i <= nodeValue; i++) {
             degrees[i] = resLeft[i] + resRight[i];
         }
 
-        double endTimeM = System.nanoTime();
-        double timeM = (endTimeM - startTimeM)/1000000.0;
+        //double endTimeM = System.nanoTime();
+        //double timeM = (endTimeM - startTimeM)/1000000.0;
 
-        LOGGER.log( Level.FINE, "Arraylist Merge: " + timeM + "ms");
+        //LOGGER.log( Level.FINE, "Arraylist Merge: " + timeM + "ms");
 
         return degrees;
     }
