@@ -4,29 +4,41 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveAction;
 
+// Modifica con ConcurrentHashMap
+// Source Code: https://goo.gl/tZqrkB
+// Link utili:
+// https://howtodoinjava.com/core-java/multi-threading/best-practices-for-using-concurrenthashmap/
+
 public class ParallelCon extends RecursiveAction {
 
-    private static final int CUTOFF = 10000;
+    private static final int CUTOFF = 40000;
 
+    // ArrayList contenente gli archi
     private ArrayList<Edge> edges;
 
     private int nEdge;
     private ConcurrentHashMap<Integer, Integer> degreeMap;
 
+    private int start;
+    private int end;
+
     public ParallelCon(ArrayList<Edge> edges,
-        ConcurrentHashMap<Integer, Integer> degreeMap, int nEdge) {
+        ConcurrentHashMap<Integer, Integer> degreeMap, int start, int end) {
         this.edges = edges;
         this.nEdge = nEdge;
         this.degreeMap = degreeMap;
+        this.start = start;
+        this.end = end;
     }
 
     @Override
     protected void compute() {
 
         // Sequential
-        if (edges.size() < CUTOFF) {
-            for (Edge edge : edges) {
-                int key = edge.getU();
+        if (end - start < CUTOFF) {
+            for (int i = start; i < end;i++) {
+                // Nodo da aggiornare
+                int key = edges.get(i).getU();
                 degreeMap.put(key, degreeMap.get(key) + 1);
             }
 
@@ -34,21 +46,13 @@ public class ParallelCon extends RecursiveAction {
         }
 
         // Parallel
-        double startTimeD = System.nanoTime();
+        int mid = (start + end) / 2;
 
-        int nEdgeHalf = nEdge/2;
-        ArrayList<Edge> degreeLeft = new ArrayList<>(edges.subList(0, nEdgeHalf));
-        ArrayList<Edge> degreeRight = new ArrayList<>(edges.subList(nEdgeHalf, nEdge));
-
-        double endTimeD = System.nanoTime();
-        double timeD = (endTimeD - startTimeD)/1000000.0;
-        //System.out.println("Arraylist split: " + timeD + "ms");
-
-        ParallelCon left = new ParallelCon(degreeLeft, degreeMap, nEdgeHalf);
-        ParallelCon right = new ParallelCon(degreeRight, degreeMap, nEdgeHalf);
+        ParallelCon left = new ParallelCon(edges, degreeMap, start, mid);
+        ParallelCon right = new ParallelCon(edges, degreeMap, mid, end);
 
         left.fork();
-        right.compute();   // compute() strano wtf
+        right.compute();
         left.join();
     }
 

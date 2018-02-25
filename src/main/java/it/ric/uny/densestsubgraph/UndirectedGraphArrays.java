@@ -15,74 +15,46 @@ import java.util.concurrent.ForkJoinPool;
 
 // Modifica con ConcurrentHashMap
 // Source Code: https://goo.gl/tZqrkB
+// Link utili:
+// https://howtodoinjava.com/core-java/multi-threading/best-practices-for-using-concurrenthashmap/
 
 public class UndirectedGraphArrays {
 
     private static final String COMMENT_CHAR = "#";
     private static ForkJoinPool fjPool = new ForkJoinPool();
-    private static int INIT_SIZE = 10000000;
-
 
     // Grafo con archi duplicati per ogni nodo, utile per calcolo del grado.
     private HashMap<Integer, HashSet<Integer>> connections;
 
-    // Numero di Archi
+    // Numero di archi
     private int nEdges;
+    // Numero di nodi
+    private int nNodes;
     // ArrayList di archi
     private ArrayList<Edge> edges;
-    // ArrayList di nodi
-
     // Mappa concorrente dei gradi
+    // Grado associato ad ogni nodo (u, deg(u)).
     private ConcurrentHashMap<Integer, Integer> degreeMap;
 
-    // Grado associato ad ogni nodo (u, deg(u)).
-    private int[] degrees;
-    private int maxNodeValue;
-
-
-    public UndirectedGraphArrays(String filename, int nEdges) {
+    public UndirectedGraphArrays(String filename, int nEdges, int nNodes) {
 
         this.connections = new HashMap<>();
         this.edges = new ArrayList<>();
-        this.degreeMap = new ConcurrentHashMap<>(INIT_SIZE, 0.75f, 8);
+        this.degreeMap = new ConcurrentHashMap<>(nNodes);
 
         this.fileToGraph(filename);
 
         this.nEdges = nEdges;
+        this.nNodes = nNodes;
     }
 
     public void degreeConc() {
-        fjPool.invoke(new ParallelCon(edges, degreeMap, nEdges));
+        fjPool.invoke(new ParallelCon(edges, degreeMap, 0, nEdges));
     }
 
     public int degree(int n) {
         //return degrees[n];
         return degreeMap.get(n);
-    }
-
-    public void degreePrepare() {
-        degrees = new int[maxNodeValue+1];
-
-        for (Edge x : edges) {
-            degrees[x.getU()] += 1;
-        }
-    }
-
-    /**
-     * Wrapper for prepareParallel method
-     */
-    public void degreePrepareParallel() {
-        this.degrees = prepareParallel();
-    }
-
-    /**
-     * Precalculation of all nodes' degree in parallel
-     *
-     * @return degreeMap with degrees
-     */
-    private int[] prepareParallel() {
-
-        return fjPool.invoke(new ParallelArrays(edges, maxNodeValue, nEdges));
     }
 
     /**
@@ -141,18 +113,17 @@ public class UndirectedGraphArrays {
     }
 
     public HashSet<Integer> getNodes() {
-        return nodes;
-    }
-
-    public int[] getDegrees() {
-        return degrees;
-    }
-
-    public int getMaxNodeValue() {
-        return maxNodeValue;
+        return null;
     }
 
     public ConcurrentHashMap<Integer, Integer> getDegreeMap() {
         return degreeMap;
+    }
+
+    //-------------------------------------------- SETTER ------------------------------------------
+
+    public void setDegreeMap(
+        ConcurrentHashMap<Integer, Integer> degreeMap) {
+        this.degreeMap = degreeMap;
     }
 }

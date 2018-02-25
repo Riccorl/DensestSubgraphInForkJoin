@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -20,28 +21,25 @@ public class UndirectedGraphSeq implements Graph {
 
     private static final String COMMENT_CHAR = "#";
 
-    // Grafo.
-    private HashMap<Integer, HashSet<Integer>> graph;
-
-    // Grafo con archi duplicati per ogni nodo, utile per calcolo del grado.
-    private HashMap<Integer, HashSet<Integer>> connections;
+    // Numero di archi
+    private int nEdges;
+    // Numero di nodi
+    private int nNodes;
+    // ArrayList di archi
+    private ArrayList<Edge> edges;
 
     // Grado associato ad ogni nodo (u, deg(u)).
     private HashMap<Integer, Integer> degreeMap;
 
-    // Densità del grafo
-    private int graphDensity;
+    public UndirectedGraphSeq(String filename, int nEdges, int nNodes) {
 
-    public UndirectedGraphSeq(String filename) {
-
-        this.graph = new HashMap<>();
-        this.connections = new HashMap<>();
-
+        this.edges = new ArrayList<>();
         this.degreeMap = new HashMap<>();
 
         this.fileToGraph(filename);
 
-        //graphDensity = calcDensity(graph);
+        this.nEdges = nEdges;
+        this.nNodes = nNodes;
     }
 
     private int calcDensity(HashMap<Integer, HashSet<Integer>> graph) {
@@ -52,45 +50,18 @@ public class UndirectedGraphSeq implements Graph {
         return nEdge / nNode;
     }
 
-    public HashMap<Integer, HashSet<Integer>> inducedEdge(HashSet<Integer> nodes) {
-        HashMap<Integer, HashSet<Integer>> square = new HashMap<>();
-
-        for (Integer n : nodes) {
-            HashSet<Integer> intersect = new HashSet<>(connections.get(n));
-            intersect.retainAll(nodes);
-            square.put(n, intersect);
-        }
-
-        return square;
-    }
-
     @Override
     public int degree(int n) {
         return degreeMap.get(n);
     }
 
-    /**
-     * Wrapper for prepare method
-     */
-    public void degreePrepare() {
-        this.degreeMap = prepare(degreeMap);
-    }
-
-    /**
-     * Precalculation of all nodes' degree.
-     *
-     * @param degreeMap Empty map of nodes and relative degree
-     * @return degreeMap with degrees
-     */
-    private HashMap<Integer, Integer> prepare(HashMap<Integer, Integer> degreeMap) {
-
-        for (Integer x : degreeMap.keySet()) {
-            int value = connections.get(x).size();
-            degreeMap.put(x, value);
+    public void degreeSeq() {
+        for (Edge e : edges) {
+            int k = e.getU();
+            degreeMap.put(k, degreeMap.get(k) + 1);
         }
-
-        return degreeMap;
     }
+
 
     /**
      * Reads from file and generates data structure for the graph
@@ -101,7 +72,7 @@ public class UndirectedGraphSeq implements Graph {
 
         try (BufferedReader br = newBufferedReader(Paths.get(filename),
             StandardCharsets.UTF_8)) {
-            for (String line = null; (line = br.readLine()) != null;) {
+            for (String line = null; (line = br.readLine()) != null; ) {
 
                 if (line.startsWith(COMMENT_CHAR)) {
                     continue;
@@ -109,19 +80,21 @@ public class UndirectedGraphSeq implements Graph {
 
                 String[] row = line.split("[\t ]");
 
-                int n1 = Integer.parseInt(row[0]);
-                int n2 = Integer.parseInt(row[1]);
+                int u = Integer.parseInt(row[0]);
+                int v = Integer.parseInt(row[1]);
 
-                addEdge(n1, n2);
+                degreeMap.putIfAbsent(u, 0);
+                degreeMap.putIfAbsent(v, 0);
+                edges.add(new Edge(u, v));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        System.out.println("Lettura Seq ok");
+        System.out.println("Lettura ok");
     }
 
-    private void addEdge(int u, int v) {
+/*    private void addEdge(int u, int v) {
         if (!connections.containsKey(u)) {
             connections.put(u, new HashSet<>());
         }
@@ -136,24 +109,24 @@ public class UndirectedGraphSeq implements Graph {
         degreeMap.put(u, 0);
         degreeMap.put(v, 0);
 
-    }
+    }*/
+
+    /*    public HashMap<Integer, HashSet<Integer>> inducedEdge(HashSet<Integer> nodes) {
+        HashMap<Integer, HashSet<Integer>> square = new HashMap<>();
+
+        for (Integer n : nodes) {
+            HashSet<Integer> intersect = new HashSet<>(connections.get(n));
+            intersect.retainAll(nodes);
+            square.put(n, intersect);
+        }
+
+        return square;
+    }*/
 
     //-------------------------------------------- GETTER --------------------------------------------
 
     public HashMap<Integer, Integer> getDegreeMap() {
         return degreeMap;
-    }
-
-    public HashMap<Integer, HashSet<Integer>> getGraph() {
-        return graph;
-    }
-
-    public HashMap<Integer, HashSet<Integer>> getConnections() {
-        return connections;
-    }
-
-    public int getGraphDensity() {
-        return graphDensity;
     }
 
 }

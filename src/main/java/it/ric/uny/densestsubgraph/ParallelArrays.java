@@ -9,7 +9,7 @@ public class ParallelArrays extends RecursiveTask<int[]>{
 
     private final static Logger LOGGER = Logger.getLogger(ParallelArrays.class.getName());
 
-    private static final int CUTOFF = 500000;
+    private static final int CUTOFF = 50000;
 
     private ArrayList<Edge> edges;
 
