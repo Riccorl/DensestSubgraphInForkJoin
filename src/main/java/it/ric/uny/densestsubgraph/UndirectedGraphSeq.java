@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UndirectedGraphSeq implements Graph {
 
@@ -70,6 +72,8 @@ public class UndirectedGraphSeq implements Graph {
      */
     private void fileToGraph(String filename) {
 
+        Pattern pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
+
         try (BufferedReader br = newBufferedReader(Paths.get(filename),
             StandardCharsets.UTF_8)) {
             for (String line = null; (line = br.readLine()) != null; ) {
@@ -78,14 +82,16 @@ public class UndirectedGraphSeq implements Graph {
                     continue;
                 }
 
-                String[] row = line.split("[\t ]");
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.matches()) {
+                    int u = Integer.parseInt(matcher.group(1));
+                    int v = Integer.parseInt(matcher.group(2));
 
-                int u = Integer.parseInt(row[0]);
-                int v = Integer.parseInt(row[1]);
+                    degreeMap.putIfAbsent(u, 0);
+                    degreeMap.putIfAbsent(v, 0);
 
-                degreeMap.putIfAbsent(u, 0);
-                degreeMap.putIfAbsent(v, 0);
-                edges.add(new Edge(u, v));
+                    edges.add(new Edge(u, v));
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

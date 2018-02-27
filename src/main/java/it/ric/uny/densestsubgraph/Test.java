@@ -3,10 +3,13 @@ package it.ric.uny.densestsubgraph;
 import com.google.common.graph.MutableGraph;
 import it.ric.uny.densestsubgraph.utils.GraphParser;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class Test {
 
@@ -20,12 +23,12 @@ public class Test {
         //String filename = "data/roadNet-CA.txt"; // 0, nEdge = 2766607, nNodes = 1965206
         //String filename = "data/as-skitter.txt"; // nEdges = 11095298, nNodes = 1696415
         //String filename = "data/cit-Patents.txt"; // 3858266, nEdges = 16518948, nNodes = 3774768
-        String filename = "data/wiki-topcats.txt"; // 0, nEdges = 28511807, nNodes = 1791489
-        //String filename = "data/soc-LiveJournal1.txt"; // 0, nEdge = 68993773, nNodes = 4847571
+        //String filename = "data/wiki-topcats.txt"; // 0, nEdges = 28511807, nNodes = 1791489
+        String filename = "data/soc-LiveJournal1.txt"; // 0, nEdge = 68993773, nNodes = 4847571
 
         int node = 0;
-        int nEdges = 28511807;
-        int nNodes = 1791489;
+        int nEdges = 68993773;
+        int nNodes = 4847571;
 
         // Guava
         /*try {
@@ -43,12 +46,12 @@ public class Test {
 
         System.out.println("");*/
 
-        /*UndirectedGraphSeq myGraph = new UndirectedGraphSeq(filename, nEdges, nNodes);
+        /*long startTime = System.nanoTime();
+        UndirectedGraphSeq myGraph = new UndirectedGraphSeq(filename, nEdges, nNodes);
         //Seq
-        double startTime = System.nanoTime();
         myGraph.degreeSeq();
-        double endTime = System.nanoTime();
-        double time = (endTime - startTime) / 1000000.0;
+        long endTime = System.nanoTime();
+        long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         System.out.println("Sequential Time: " + time + "ms");
 
         int degSeq = myGraph.degree(node);
@@ -56,24 +59,37 @@ public class Test {
 
         System.out.println("");*/
 
-
+        long startTime = System.nanoTime();
         UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(filename, nEdges, nNodes);
-        for (int i = 0; i < 3; i++) {
-            double startTimeA = System.nanoTime();
+        graphArrays.degreeConc();
+        long endTime = System.nanoTime();
+        long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        System.out.println("Fill Time: " + time + " ms");
+
+        ArrayList<Integer> valTempi = new ArrayList<>();
+
+        /*for (int i = 0; i < 10; i++) {
+            long startTimeA = System.nanoTime();
 
             graphArrays.degreeConc();
 
-            double endTimeA = System.nanoTime();
-            double timeA = (endTimeA - startTimeA) / 1000000.0;
-            System.out.println("Array Time: " + timeA + "ms");
+            long endTimeA = System.nanoTime();
+            long timeA = TimeUnit.NANOSECONDS.toMillis(endTimeA - startTimeA);
+            System.out.println("Array Time: " + timeA + " ms");
 
-            if (i < 2) {
-                ConcurrentHashMap<Integer, Integer> oldMap = graphArrays.getDegreeMap();
-                graphArrays.setDegreeMap(resetMap(nNodes, oldMap));
+            valTempi.add((int) timeA);
+
+            if (i < 9) {
+                graphArrays.setDegreeMap(new ConcurrentHashMap<>(nNodes,
+                    0.99f));
             }
 
-        }
+        }*/
 
+        //Integer max = valTempi.stream().mapToInt(Integer::intValue).max().getAsInt();
+        //valTempi.remove(max);
+        //int media = valTempi.stream().mapToInt(Integer::intValue).sum() / valTempi.size();
+        //System.out.println("Media tempi: " + media + " ms");
         int degPar = graphArrays.degree(node);
         System.out.println("Degree Array: " + degPar);
 
@@ -86,17 +102,5 @@ public class Test {
 
         System.out.println(myGraph.inducedEdge(s));*/
 
-    }
-
-    private static ConcurrentHashMap<Integer, Integer> resetMap(int nNodes,
-        ConcurrentHashMap<Integer, Integer> oldMap) {
-        ConcurrentHashMap<Integer, Integer> newMap = new ConcurrentHashMap<>(nNodes,
-            0.75f);
-
-        for (int x : oldMap.keySet()) {
-            newMap.put(x, 0);
-        }
-
-        return newMap;
     }
 }

@@ -86,7 +86,7 @@ public class UndirectedGraph implements Graph {
      */
     private HashMap<Integer, Integer> prepareParallel() {
 
-        return fjPool.invoke(new ParallelDegree(connections, nodeList));
+        return null;
     }
 
     /**
