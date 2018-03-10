@@ -47,6 +47,12 @@ public class UndirectedGraph implements Graph {
         //graphDensity = calcDensity(graph);
     }
 
+    /**
+     * For undirected simple graphs G = (V,E), the graph density is defined as
+     * d = 2|E|/(|V|*(|V| - 1))
+     *
+     * @return      d
+     */
     private int calcDensity(HashMap<Integer, HashSet<Integer>> graph) {
 
         int nEdge = graph.keySet().stream().mapToInt(x -> x).map(x -> graph.get(x).size()).sum();
