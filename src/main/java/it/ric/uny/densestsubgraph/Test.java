@@ -17,19 +17,19 @@ public class Test {
 
         MutableGraph<Integer> graphGuava = null;
         //String filename = "data/dummy_graph.txt";
-        String filename = "data/dummy_graph2.txt"; // nEdge = 11, nNode = 8
-        //String filename = "data/facebook_combined.txt";
-        //String filename = "data/ca-CondMat.txt";
-        //String filename = "data/ca-AstroPh.txt"; // 84424
-        //String filename = "data/roadNet-CA.txt"; // 0, nEdge = 2766607, nNodes = 1965206
-        //String filename = "data/as-skitter.txt"; // nEdges = 11095298, nNodes = 1696415
-        //String filename = "data/cit-Patents.txt"; // 3858266, nEdges = 16518948, nNodes = 3774768
-        //String filename = "data/wiki-topcats.txt"; // 0, nEdges = 28511807, nNodes = 1791489
-        //String filename = "data/soc-LiveJournal1.txt"; // 0, nEdge = 68993773, nNodes = 4847571
+        //String filename = "data/dummy_graph2.txt"; //         nEdge = 11,         nNode = 8
+        String filename = "data/facebook_combined.txt"; //      nEdges = 88234,     nNodes = 4039
+        //String filename = "data/ca-CondMat.txt"; //           nEdges = 93497,     nNodes = 23133
+        //String filename = "data/ca-AstroPh.txt"; // 84424,    nEdges = 198110,    nNodes = 18772
+        //String filename = "data/roadNet-CA.txt"; // 0,        nEdge = 2766607,    nNodes = 1965206
+        //String filename = "data/as-skitter.txt"; //           nEdges = 11095298,  nNodes = 1696415
+        //String filename = "data/cit-Patents.txt"; // 3858266, nEdges = 16518948,  nNodes = 3774768
+        //String filename = "data/wiki-topcats.txt"; // 0,      nEdges = 28511807,  nNodes = 1791489
+        //String filename = "data/soc-LiveJournal1.txt"; // 0,  nEdge = 68993773,   nNodes = 4847571
 
         int node = 0;
-        double nEdges = 11;
-        double nNodes = 8;
+        double nEdges = 198110;
+        double nNodes = 18772;
 
         // Guava
         /*try {
@@ -48,27 +48,27 @@ public class Test {
         System.out.println("");*/
 
         // Sequenziale
+//        long startTime = System.nanoTime();
+//        UndirectedGraphSeq myGraph = new UndirectedGraphSeq(filename, nEdges, nNodes);
+//        Set<Integer> densest = myGraph.densestSubgraph(2);
+//        long endTime = System.nanoTime();
+//        long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+//        System.out.println("Sequential Densest Time: " + time + "ms");
+//        System.out.println(densest);
+
+//        int degSeq = myGraph.degree(node);
+//        System.out.println("Degree Sequential: " + degSeq);
+//        System.out.println("dG = " + myGraph.calcDensity(nEdges, nNodes));
+
         long startTime = System.nanoTime();
-        UndirectedGraphSeq myGraph = new UndirectedGraphSeq(filename, nEdges, nNodes);
-        //myGraph.degreeSeq(myGraph.getEdges());
-       /* long endTime = System.nanoTime();
-        long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-        System.out.println("Sequential Time: " + time + "ms");
-
-        int degSeq = myGraph.degree(node);
-        System.out.println("Degree Sequential: " + degSeq);*/
-        System.out.println("dG = " + myGraph.calcDensity(nEdges, nNodes));
-        Set<Integer> densest = myGraph.densestSubgraph(0);
-        System.out.println(densest);
-
-        /*long startTime = System.nanoTime();
         UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(filename, nEdges, nNodes);
-        graphArrays.degreeConc();
+        Set<Integer> densest = graphArrays.densestSubgraph(2);
         long endTime = System.nanoTime();
         long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-        System.out.println("Fill Time: " + time + " ms");
+        System.out.println("Parallel Densest Time: " + time + " ms");
+        System.out.println(densest);
 
-        ArrayList<Integer> valTempi = new ArrayList<>();*/
+//        ArrayList<Integer> valTempi = new ArrayList<>();
 
         /*for (int i = 0; i < 10; i++) {
             long startTimeA = System.nanoTime();
@@ -82,7 +82,7 @@ public class Test {
             valTempi.add((int) timeA);
 
             if (i < 9) {
-                graphArrays.setDegreeMap(new ConcurrentHashMap<>(nNodes,
+                graphArrays.setDegreesMap(new ConcurrentHashMap<>(nNodes,
                     0.99f));
             }
 

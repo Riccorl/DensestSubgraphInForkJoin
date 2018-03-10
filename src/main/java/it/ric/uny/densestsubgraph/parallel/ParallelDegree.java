@@ -12,7 +12,7 @@ import java.util.concurrent.RecursiveAction;
 
 public class ParallelDegree extends RecursiveAction {
 
-    private static final int CUTOFF = 65000;
+    private static final int CUTOFF = 5000;
 
     // ArrayList contenente gli archi
     private ArrayList<Edge> edges;
@@ -46,11 +46,17 @@ public class ParallelDegree extends RecursiveAction {
         if (end - start < CUTOFF) {
             for (int i = start; i < end;i++) {
                 // Nodo da aggiornare
-                int key = //edges[i].getU();
+                int u = //edges[i].getU();
                  edges.get(i).getU();
 
-                if (degreeMap.putIfAbsent(key, 1) != null) {
-                    degreeMap.put(key, degreeMap.get(key) + 1);
+                int v = edges.get(i).getV();
+
+                if (degreeMap.putIfAbsent(u, 1) != null) {
+                    degreeMap.put(u, degreeMap.get(u) + 1);
+                }
+
+                if (degreeMap.putIfAbsent(v, 1) != null) {
+                    degreeMap.put(v, degreeMap.get(v) + 1);
                 }
                 //degreeMap.put(key, degreeMap.get(key) + 1);
             }
