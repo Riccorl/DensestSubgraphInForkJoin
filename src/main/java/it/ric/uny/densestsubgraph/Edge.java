@@ -40,15 +40,9 @@ public class Edge {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
         Edge edge = (Edge) o;
-        return u == edge.u &&
-            v == edge.v;
+        return u == edge.getU() &&
+            v == edge.getV();
     }
 
     @Override
