@@ -10,17 +10,20 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.Data;
 
 // Modifica con ConcurrentHashMap
 // Source Code: https://goo.gl/tZqrkB
 // Link utili:
 // https://howtodoinjava.com/core-java/multi-threading/best-practices-for-using-concurrenthashmap/
 
+@Data
 public class UndirectedGraphArrays {
 
     private static final String COMMENT_CHAR = "#";
@@ -30,92 +33,86 @@ public class UndirectedGraphArrays {
     private HashMap<Integer, HashSet<Integer>> connections;
 
     // Numero di archi
-    private double nEdges;
+    private float nEdges;
     // Numero di nodi
-    private double nNodes;
+    private float nNodes;
     // ArrayList di archi
     private ArrayList<Edge> edges;
     //private Edge[] edges;
+
+    private Set<Integer> nodes;
+    private float density;
 
     // Mappa concorrente dei gradi
     // Grado associato ad ogni nodo (u, deg(u)).
     private ConcurrentHashMap<Integer, Integer> degreesMap;
 
-    public UndirectedGraphArrays(String filename, double nEdges, double nNodes) {
+    public UndirectedGraphArrays(String filename, float nEdges, float nNodes) {
 
         this.connections = new HashMap<>();
         this.edges = new ArrayList<>();//new Edge[nEdges];//new ArrayList<>();
+        this.nodes = new HashSet<>();
         this.degreesMap = new ConcurrentHashMap<>((int) nNodes, 0.55f);
 
-        //long startTime = System.nanoTime();
         this.fileToGraph(filename);
-
-        //long endTime = System.nanoTime();
-        //long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-
-        //System.out.println("Fill Time: " + time + "ms");
 
         this.nEdges = nEdges;
         this.nNodes = nNodes;
     }
 
-    public Set<Integer> densestSubgraph(double e) {
-        this.degreesMap = this.degreeConc(edges, new ConcurrentHashMap<>(), edges.size());
+    public Set<Integer> densestSubgraph(float e) {
+        this.degreesMap = this.degreeConc(edges, edges.size());
 
-        Set<Integer> s = degreesMap.keySet();
-        Set<Integer> sTilde = degreesMap.keySet();
-        double d = calcDensity(nEdges, nNodes);
+        Set<Integer> s = new HashSet<>(nodes);
+        Set<Integer> sTilde = new HashSet<>(nodes);
 
-        return densestSubgraph(edges, s, sTilde, d, e);
+        return densestSubgraph(edges, s, sTilde, e);
     }
 
     private Set<Integer> densestSubgraph(ArrayList<Edge> edges, Set<Integer> s,
-        Set<Integer> sTilde, double dSTilde, double e) {
+        Set<Integer> sTilde, float e) {
 
-        double threshold = 2 * (1 + e) * dSTilde;
-        Set<Integer> aS = new HashSet<>();
-        ArrayList<Edge> edgesRemoved = new ArrayList<>();
+        float densityS = calcDensity(nEdges, nNodes);
+        float dSTilde = densityS;
 
         // Itera sugli archi alla ricerca di nodi con grado inferiore a
         // 2*(1 + e) * d(S)
         while (!s.isEmpty()) {
-            this.degreesMap = this.degreeConc(edges, new ConcurrentHashMap<>(), edges.size());
-            for (Edge edge : edges) {
-                if (this.degree(edge.getU()) <= threshold
-                    || this.degree(edge.getV()) <= threshold) {
 
-                    if (this.degree(edge.getU()) <= threshold) {
-                        aS.add(edge.getU());
-                    }
+            ArrayList<Edge> edgesRemoved = new ArrayList<>(edges);
+            Map<Integer, Integer> degreeS = this.degreeConc(edges, (int) nEdges);
+            s.retainAll(degreeS.keySet());
 
-                    if (this.degree(edge.getV()) <= threshold) {
-                        aS.add(edge.getV());
-                    }
+            float threshold = 2 * (1 + e) * densityS;
 
-                    edgesRemoved.add(edge);
+            for (Edge edge : edgesRemoved) {
+                int u = edge.getU();
+                int v = edge.getV();
+
+                if (degreeS.get(u) <= threshold) {
+                    s.remove(u);
+                    edges.remove(edge);
+                }
+                if (degreeS.get(v) <= threshold) {
+                    s.remove(v);
+                    edges.remove(edge);
                 }
             }
 
-            s.removeAll(aS);
-            edges.removeAll(edgesRemoved);
-
-            double densityS = calcDensity(edges.size(), s.size());
+            densityS = calcDensity(edges.size() / 2, s.size());
 
             if (densityS > dSTilde) {
                 sTilde = new HashSet<>(s);
                 dSTilde = densityS;
             }
-
-            aS.clear();
-            edgesRemoved.clear();
         }
 
+        density = dSTilde;
         return sTilde;
     }
 
-    public ConcurrentHashMap<Integer, Integer> degreeConc(ArrayList<Edge> edges,
-        ConcurrentHashMap<Integer, Integer> degreesMap,
-        int nEdges) {
+    public ConcurrentHashMap<Integer, Integer> degreeConc(ArrayList<Edge> edges, int nEdges) {
+        ConcurrentHashMap<Integer, Integer> degreesMap = new ConcurrentHashMap<>();
         fjPool.invoke(new ParallelDegree(edges, degreesMap, nEdges));
         return degreesMap;
     }
@@ -131,7 +128,7 @@ public class UndirectedGraphArrays {
      *
      * @return d
      */
-    private double calcDensity(double nEdges, double nNodes) {
+    private float calcDensity(float nEdges, float nNodes) {
         return nEdges / nNodes;
     }
 
@@ -161,6 +158,8 @@ public class UndirectedGraphArrays {
                 if (matcher.matches()) {
                     int u = Integer.parseInt(matcher.group(1));
                     int v = Integer.parseInt(matcher.group(2));
+                    nodes.add(u);
+                    nodes.add(v);
                     edges.add(new Edge(u, v));
                     //edges[i] = new Edge(u, v);
                     //i++;
@@ -169,31 +168,5 @@ public class UndirectedGraphArrays {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    //-------------------------------------------- GETTER --------------------------------------------
-
-
-    public HashMap<Integer, HashSet<Integer>> getConnections() {
-        return connections;
-    }
-
-    public ArrayList<Edge> getEdges() {
-        return null;
-    }
-
-    public HashSet<Integer> getNodes() {
-        return null;
-    }
-
-    public ConcurrentHashMap<Integer, Integer> getDegreesMap() {
-        return degreesMap;
-    }
-
-    //-------------------------------------------- SETTER ------------------------------------------
-
-    public void setDegreesMap(
-        ConcurrentHashMap<Integer, Integer> degreesMap) {
-        this.degreesMap = degreesMap;
     }
 }
