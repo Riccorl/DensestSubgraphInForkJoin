@@ -17,20 +17,18 @@ public class Test {
 
         MutableGraph<Integer> graphGuava = null;
         //String filename = "data/dummy_graph.txt";
-        //String filename = "data/dummy_graph2.txt"; //         nEdge = 11,         nNode = 8
-        //String filename = "data/ca-GrQc.txt"; //              nEdges = 14496  28980,     nNodes = 5242
-        //String filename = "data/facebook_combined.txt"; //    nEdges = 88234,     nNodes = 4039
-        String filename = "data/ca-CondMat.txt"; //           nEdges = 93497,     nNodes = 23133
-        //String filename = "data/ca-AstroPh.txt"; // 84424,    nEdges = 198110, 396160    nNodes = 18772
-        //String filename = "data/roadNet-CA.txt"; // 0,        nEdge = 2766607,    nNodes = 1965206
-        //String filename = "data/as-skitter.txt"; //           nEdges = 11095298,  nNodes = 1696415
-        //String filename = "data/cit-Patents.txt"; // 3858266, nEdges = 16518948,  nNodes = 3774768
-        //String filename = "data/wiki-topcats.txt"; // 0,      nEdges = 28511807,  nNodes = 1791489
-        //String filename = "data/soc-LiveJournal1.txt"; // 0,  nEdge = 68993773,   nNodes = 4847571
+        //String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
+        //String filename = "data/ca-GrQc.txt";                 float nEdges = 14496;     float nNodes = 18772;
+        //String filename = "data/facebook_combined.txt";       float nEdges = 88234;     float nNodes = 4039;
+        //String filename = "data/ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
+        String filename = "data/ca-AstroPh.txt";              float nEdges = 198110;    float nNodes = 18772;
+        //String filename = "data/roadNet-CA.txt";              float nEdge = 2766607;    float nNodes = 1965206;
+        //String filename = "data/as-skitter.txt";              float nEdges = 11095298;  float nNodes = 1696415;
+        //String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
+        //String filename = "data/wiki-topcats.txt";            float nEdges = 28511807;  float nNodes = 1791489;
+        //String filename = "data/soc-LiveJournal1.txt";        float nEdge = 68993773;   float nNodes = 4847571;
 
         int node = 0;
-        float nEdges = 93497;
-        float nNodes = 23133;
 
         // Guava
         /*try {
@@ -51,27 +49,33 @@ public class Test {
         // Sequenziale
         /*long startTime = System.nanoTime();
         UndirectedGraphSeq myGraph = new UndirectedGraphSeq(filename, nEdges, nNodes);
-        Set<Integer> densest = myGraph.densestSubgraph((float) 0.1);
+        float densest = myGraph.densestSubgraph((float) 1);
+        //float densest = myGraph.densestSubgraphRic((float) 1);
         long endTime = System.nanoTime();
         long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         System.out.println("Sequential Densest Time: " + time + "ms");
-        System.out.println("Densest subgraph nodes: " + densest.size());
-        System.out.println("Densest subgraph d: " + myGraph.getDensity());*/
+        //System.out.println("Densest subgraph nodes: " + densest.size());
+        System.out.println("Densest subgraph d: " + myGraph.getDensity());
+        //System.out.println("Densest subgraph d: " + densest);*/
 
 //        int degSeq = myGraph.degree(node);
 //        System.out.println("Degree Sequential: " + degSeq);
 //        System.out.println("dG = " + myGraph.calcDensity(nEdges, nNodes));
 
-        long startTime = System.nanoTime();
-        UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(filename, nEdges, nNodes);
-        Set<Integer> densest = graphArrays.densestSubgraph(1);
-        long endTime = System.nanoTime();
-        long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-        System.out.println("Parallel Densest Time: " + time + " ms");
-        System.out.println(densest);
-        ArrayList<Integer> valTempi = new ArrayList<>();
+        System.out.println();
 
-        /*for (int i = 0; i < 10; i++) {
+        long startTimeP = System.nanoTime();
+        UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(filename, nEdges, nNodes);
+        float densestP = graphArrays.densestSubgraph((float) 1);
+        long endTimeP = System.nanoTime();
+        long timeP = TimeUnit.NANOSECONDS.toMillis(endTimeP - startTimeP);
+        System.out.println("Parallel Densest Time: " + timeP + " ms");
+        //System.out.println("Densest subgraph nodes: " + densest.size());
+        //System.out.println("Densest subgraph d: " + graphArrays.getDensity());
+        System.out.println("Densest subgraph d: " + densestP);
+
+        /*ArrayList<Integer> valTempi = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
             long startTimeA = System.nanoTime();
 
             graphArrays.degreeConc();

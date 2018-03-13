@@ -4,12 +4,14 @@ import it.ric.uny.densestsubgraph.Edge;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveAction;
+import lombok.Data;
 
 // Modifica con ConcurrentHashMap
 // Source Code: https://goo.gl/tZqrkB
 // Link utili:
 // https://howtodoinjava.com/core-java/multi-threading/best-practices-for-using-concurrenthashmap/
 
+@Data
 public class ParallelDegree extends RecursiveAction {
 
     private static final int CUTOFF = 5000;
@@ -44,11 +46,9 @@ public class ParallelDegree extends RecursiveAction {
 
         // Sequential
         if (end - start < CUTOFF) {
-            for (int i = start; i < end;i++) {
+            for (int i = start; i < end; i++) {
                 // Nodo da aggiornare
-                int u = //edges[i].getU();
-                 edges.get(i).getU();
-
+                int u = edges.get(i).getU();
                 int v = edges.get(i).getV();
 
                 if (degreeMap.putIfAbsent(u, 1) != null) {
@@ -58,7 +58,6 @@ public class ParallelDegree extends RecursiveAction {
                 if (degreeMap.putIfAbsent(v, 1) != null) {
                     degreeMap.put(v, degreeMap.get(v) + 1);
                 }
-                //degreeMap.put(key, degreeMap.get(key) + 1);
             }
             return;
         }

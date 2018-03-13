@@ -1,6 +1,5 @@
 package it.ric.uny.densestsubgraph;
 
-import java.util.Objects;
 import lombok.Data;
 
 @Data

@@ -3,6 +3,7 @@ package it.ric.uny.densestsubgraph;
 import static java.nio.file.Files.newBufferedReader;
 
 import it.ric.uny.densestsubgraph.parallel.ParallelDegree;
+import it.ric.uny.densestsubgraph.parallel.ParallelRemove;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +40,7 @@ public class UndirectedGraphArrays {
     // ArrayList di archi
     private ArrayList<Edge> edges;
     //private Edge[] edges;
+    private Set<Integer> sTilde;
 
     private Set<Integer> nodes;
     private float density;
@@ -60,7 +62,7 @@ public class UndirectedGraphArrays {
         this.nNodes = nNodes;
     }
 
-    public Set<Integer> densestSubgraph(float e) {
+    public float densestSubgraph(float e) {
         this.degreesMap = this.degreeConc(edges, edges.size());
 
         Set<Integer> s = new HashSet<>(nodes);
@@ -69,10 +71,37 @@ public class UndirectedGraphArrays {
         return densestSubgraph(edges, s, sTilde, e);
     }
 
-    private Set<Integer> densestSubgraph(ArrayList<Edge> edges, Set<Integer> s,
+    private float densestSubgraph(ArrayList<Edge> edges, Set<Integer> s,
         Set<Integer> sTilde, float e) {
-
         float densityS = calcDensity(nEdges, nNodes);
+        float dSTilde = densityS;
+
+        ConcurrentHashMap<Integer, Integer> degreeS;
+
+        // Itera sugli archi alla ricerca di nodi con grado inferiore a
+        // 2*(1 + e) * d(S)
+        while (!s.isEmpty()) {
+
+            degreeS = this.degreeConc(edges, edges.size());
+            s.retainAll(degreeS.keySet());
+
+            float threshold = 2 * (1 + e) * densityS;
+
+            filter(edges, degreeS, s, threshold);
+
+            densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
+
+            if (densityS > dSTilde) {
+                sTilde = new HashSet<>(degreeS.keySet());
+                dSTilde = densityS;
+            }
+        }
+
+        this.density = dSTilde;
+        this.sTilde = sTilde;
+        return density;
+
+       /* float densityS = calcDensity(nEdges, nNodes);
         float dSTilde = densityS;
 
         // Itera sugli archi alla ricerca di nodi con grado inferiore a
@@ -80,24 +109,12 @@ public class UndirectedGraphArrays {
         while (!s.isEmpty()) {
 
             ArrayList<Edge> edgesRemoved = new ArrayList<>(edges);
-            Map<Integer, Integer> degreeS = this.degreeConc(edges, (int) nEdges);
+            Map<Integer, Integer> degreeS = this.degreeConc(edges, edges.size());
             s.retainAll(degreeS.keySet());
 
             float threshold = 2 * (1 + e) * densityS;
 
-            for (Edge edge : edgesRemoved) {
-                int u = edge.getU();
-                int v = edge.getV();
-
-                if (degreeS.get(u) <= threshold) {
-                    s.remove(u);
-                    edges.remove(edge);
-                }
-                if (degreeS.get(v) <= threshold) {
-                    s.remove(v);
-                    edges.remove(edge);
-                }
-            }
+            //fjPool.invoke(new ParallelRemove(edges, edgesRemoved, s, degreeS, threshold));
 
             densityS = calcDensity(edges.size() / 2, s.size());
 
@@ -108,7 +125,33 @@ public class UndirectedGraphArrays {
         }
 
         density = dSTilde;
-        return sTilde;
+        return density;*/
+    }
+
+    private void filter(ArrayList<Edge> list, ConcurrentHashMap<Integer, Integer> degreeS, Set<Integer> set,
+        double threshold) {
+        int inputSize = list.size();
+        int outputSize = 0;
+
+        for (int i = 0; i < inputSize; ++i) {
+            Edge e = list.get(i);
+            int u = e.getU();
+            int degU = degreeS.get(u);
+            int v = e.getV();
+            int degV = degreeS.get(v);
+
+            if (degU <= threshold || degV <= threshold) {
+                if (degU <= threshold) {
+                    set.remove(u);
+                }
+                if (degV <= threshold) {
+                    set.remove(v);
+                }
+            } else {
+                list.set(outputSize++, e);
+            }
+        }
+        list.subList(outputSize, inputSize).clear();
     }
 
     public ConcurrentHashMap<Integer, Integer> degreeConc(ArrayList<Edge> edges, int nEdges) {

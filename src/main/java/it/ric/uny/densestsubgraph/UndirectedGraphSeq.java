@@ -26,9 +26,12 @@ public class UndirectedGraphSeq implements Graph {
     private float nNodes;
     // ArrayList di archi
     private ArrayList<Edge> edges;
+    // Insieme dei nodi
     private Set<Integer> nodes;
     // Densita del sottografo più denso
     private float density;
+    // Nodi sottografo più denso
+    private Set<Integer> sTilde;
 
     // Grado associato ad ogni nodo (u, deg(u)).
     private HashMap<Integer, Set<Integer>> degreesMap;
@@ -38,6 +41,7 @@ public class UndirectedGraphSeq implements Graph {
         this.edges = new ArrayList<>();
         this.nodes = new HashSet<>();
         this.degreesMap = new HashMap<>();
+        this.sTilde = new HashSet<>();
 
         this.nEdges = nEdges;
         this.nNodes = nNodes;
@@ -53,68 +57,87 @@ public class UndirectedGraphSeq implements Graph {
         this.nNodes = nNodes;
     }
 
-    public Set<Integer> densestSubgraph(float e) {
+    public float densestSubgraphRic(float e) {
+        float densityS = calcDensity(nEdges, nNodes);
+        Set<Integer> s = new HashSet<>(nodes);
+        HashMap<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
+        return densestSubgraphRic(edges, s, degreeS, densityS, densityS, e);
+    }
+
+    private float densestSubgraphRic(ArrayList<Edge> edges, Set<Integer> s,
+        HashMap<Integer, Set<Integer>> degreeS,
+        float densityS, float dSTilde, float e) {
+
+        if (degreeS.isEmpty()) {
+            return dSTilde;
+        }
+
+        degreeS = this.degreeSeq(edges);
+        float threshold = 2 * (1 + e) * densityS;
+        filter(edges, degreeS, s, threshold);
+        densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
+
+        if (densityS > dSTilde) {
+            dSTilde = densityS;
+        }
+
+        return densestSubgraphRic(edges, s, degreeS, densityS, dSTilde, e);
+    }
+
+    public float densestSubgraph(float e) {
         Set<Integer> s = new HashSet<>(nodes);
         Set<Integer> sTilde = new HashSet<>(nodes);
         return densestSubgraph(edges, s, sTilde, e);
     }
 
-    private Set<Integer> densestSubgraph(ArrayList<Edge> edges, Set<Integer> s,
+    private float densestSubgraph(ArrayList<Edge> edges, Set<Integer> s,
         Set<Integer> sTilde, float e) {
 
         float densityS = calcDensity(nEdges, nNodes);
         float dSTilde = densityS;
 
+        Map<Integer, Set<Integer>> degreeS;
+
         // Itera sugli archi alla ricerca di nodi con grado inferiore a
         // 2*(1 + e) * d(S)
         while (!s.isEmpty()) {
 
-            ArrayList<Edge> edgesRemoved = new ArrayList<>(edges);
-            Map<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
+            degreeS = this.degreeSeq(edges);
             s.retainAll(degreeS.keySet());
 
             float threshold = 2 * (1 + e) * densityS;
 
-            for (Edge edge : edgesRemoved) {
-                int u = edge.getU();
-                int v = edge.getV();
+            filter(edges, degreeS, s, threshold);
 
-                if (degreeS.get(u).size() <= threshold) {
-                    s.remove(u);
-                    edges.remove(edge);
-                }
-                if (degreeS.get(v).size() <= threshold) {
-                    s.remove(v);
-                    edges.remove(edge);
-                }
-            }
-
-            densityS = calcDensity(edges.size() / 2, s.size());
+            densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
 
             if (densityS > dSTilde) {
-                sTilde = new HashSet<>(s);
+                sTilde = new HashSet<>(degreeS.keySet());
                 dSTilde = densityS;
             }
         }
 
-        density = dSTilde;
-        return sTilde;
+        this.density = dSTilde;
+        this.sTilde = sTilde;
+        return density;
     }
 
-    public void filter(ArrayList<Edge> list, Set<Integer> set, double threshold) {
+    private void filter(ArrayList<Edge> list, Map<Integer, Set<Integer>> degreeS, Set<Integer> set,
+        double threshold) {
         int inputSize = list.size();
         int outputSize = 0;
 
         for (int i = 0; i < inputSize; ++i) {
             Edge e = list.get(i);
-            if (this.degree(e.getU()) <= threshold || this.degree(e.getV()) <= threshold) {
+            int u = e.getU();
+            int v = e.getV();
 
-                if (this.degree(e.getU()) <= threshold) {
-                    set.add(e.getU());
+            if (degreeS.get(u).size() <= threshold || degreeS.get(v).size() <= threshold) {
+                if (degreeS.get(u).size() <= threshold) {
+                    set.remove(u);
                 }
-
-                if (this.degree(e.getV()) <= threshold) {
-                    set.add(e.getV());
+                if (degreeS.get(v).size() <= threshold) {
+                    set.remove(v);
                 }
             } else {
                 list.set(outputSize++, e);
