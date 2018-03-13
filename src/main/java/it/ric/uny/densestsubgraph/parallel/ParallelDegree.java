@@ -2,6 +2,8 @@ package it.ric.uny.densestsubgraph.parallel;
 
 import it.ric.uny.densestsubgraph.Edge;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveAction;
 import lombok.Data;
@@ -20,13 +22,13 @@ public class ParallelDegree extends RecursiveAction {
     private ArrayList<Edge> edges;
     //private Edge[] edges;
 
-    private ConcurrentHashMap<Integer, Integer> degreeMap;
+    private ConcurrentHashMap<Integer, Set<Integer>> degreeMap;
 
     private int start;
     private int end;
 
     public ParallelDegree(ArrayList<Edge> edges,
-        ConcurrentHashMap<Integer, Integer> degreeMap, int end) {
+        ConcurrentHashMap<Integer, Set<Integer>> degreeMap, int end) {
         this.edges = edges;
         this.degreeMap = degreeMap;
         this.start = 0;
@@ -34,7 +36,7 @@ public class ParallelDegree extends RecursiveAction {
     }
 
     private ParallelDegree(ArrayList<Edge> edges,
-        ConcurrentHashMap<Integer, Integer> degreeMap, int start, int end) {
+        ConcurrentHashMap<Integer, Set<Integer>> degreeMap, int start, int end) {
         this.edges = edges;
         this.degreeMap = degreeMap;
         this.start = start;
@@ -51,8 +53,12 @@ public class ParallelDegree extends RecursiveAction {
                 int u = edges.get(i).getU();
                 int v = edges.get(i).getV();
 
-                if (degreeMap.putIfAbsent(u, 1) != null) {
-                    degreeMap.put(u, degreeMap.get(u) + 1);
+                if (degreeMap.putIfAbsent(u, new HashSet<>()) != null) {
+                    degreeMap.get(u).add(v);
+                }
+
+                if (degreeMap.putIfAbsent(v, new HashSet<>()) != null) {
+                    degreeMap.get(v).add(u);
                 }
 
                 /*if (degreeMap.putIfAbsent(v, 1) != null) {

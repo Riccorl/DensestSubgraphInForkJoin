@@ -4,78 +4,57 @@ import it.ric.uny.densestsubgraph.Edge;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
-public class ParallelRemove extends RecursiveAction {
+public class ParallelRemove extends RecursiveTask<ArrayList<Edge>> {
 
-    private static final int CUTOFF = 50000;
+    private static final int CUTOFF = 10000;
 
     private ArrayList<Edge> edges;
-    ArrayList<Edge> edgesRemoved;
-    private Set<Integer> s;
-    Map<Integer, Integer> degreeS;
-    private int start;
-    private int end;
+    private Map<Integer, Set<Integer>> degreeS;
     private float threshold;
 
-    public ParallelRemove(ArrayList<Edge> edges, ArrayList<Edge> edgesRemoved, Set<Integer> s, Map<Integer, Integer> degreeS,
+    public ParallelRemove(ArrayList<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         float threshold) {
 
         this.edges = edges;
-        this.edgesRemoved = edgesRemoved;
-        this.s = s;
         this.degreeS = degreeS;
-        this.end = edges.size();
-        this.threshold = threshold;
-    }
-
-    private ParallelRemove(ArrayList<Edge> edges,
-                            ArrayList<Edge> edgesRemoved,
-                            Set<Integer> s,
-                            Map<Integer, Integer> degreeS,
-                            int start,
-                            int end,
-                            float threshold) {
-
-        this.edges = edges;
-        this.edgesRemoved = edgesRemoved;
-        this.s = s;
-        this.degreeS = degreeS;
-        this.start = start;
-        this.end = end;
         this.threshold = threshold;
     }
 
     @Override
-    protected void compute() {
+    protected ArrayList<Edge> compute() {
 
         // Sequential
-        if (end - start < CUTOFF) {
-            for (int i = start; i < end; i++) {
-                Edge edge = edgesRemoved.get(i);
-                int u = edge.getU();
-                int v = edge.getV();
+        if (edges.size() < CUTOFF) {
+            int inputSize = edges.size();
+            int outputSize = 0;
 
-                if (degreeS.get(u) <= threshold) {
-                    s.remove(u);
-                    edges.remove(edge);
-                }
-                if (degreeS.get(v) <= threshold) {
-                    s.remove(v);
-                    edges.remove(edge);
+            for (int i = 0; i < inputSize; ++i) {
+                Edge e = edges.get(i);
+                int u = e.getU();
+                int v = e.getV();
+
+                if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
+                    edges.set(outputSize++, e);
                 }
             }
-            return;
+            edges.subList(outputSize, inputSize).clear();
+            return edges;
         }
 
         // Parallel
-        int mid = (start + end) / 2;
 
-        ParallelRemove left = new ParallelRemove(edges, edgesRemoved, s, degreeS, start, mid, threshold);
-        ParallelRemove right = new ParallelRemove(edges, edgesRemoved, s, degreeS, mid, end, threshold);
+        ParallelRemove left = new ParallelRemove(
+            new ArrayList<>(edges.subList(0, edges.size() / 2)), degreeS, threshold);
+        ParallelRemove right = new ParallelRemove(
+            new ArrayList<>(edges.subList(edges.size() / 2, edges.size())), degreeS, threshold);
 
         left.fork();
-        right.compute();
-        left.join();
+        ArrayList<Edge> edgesRight = right.compute();
+        ArrayList<Edge> edgesLeft = left.join();
+        edgesLeft.addAll(edgesRight);
+
+        return edgesLeft;
     }
 }

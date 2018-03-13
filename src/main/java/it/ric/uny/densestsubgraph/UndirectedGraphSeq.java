@@ -101,8 +101,6 @@ public class UndirectedGraphSeq implements Graph {
         // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
         while (!degreeS.isEmpty()) {
 
-            System.out.println(degreeS.size());
-
             float threshold = 2 * (1 + e) * densityS;
             filter(edges, degreeS, threshold);
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());

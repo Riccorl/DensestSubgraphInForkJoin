@@ -65,7 +65,7 @@ public class Test {
 
         long startTimeP = System.nanoTime();
         UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(filename, nEdges, nNodes);
-        float densestP = graphArrays.densestSubgraph((float) 1);
+        float densestP = graphArrays.densestSubgraph((float) 1.1);
         long endTimeP = System.nanoTime();
         long timeP = TimeUnit.NANOSECONDS.toMillis(endTimeP - startTimeP);
         System.out.println("Parallel Densest Time: " + timeP + " ms");
