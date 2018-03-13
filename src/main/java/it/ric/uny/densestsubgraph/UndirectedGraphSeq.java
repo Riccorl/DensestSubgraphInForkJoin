@@ -102,8 +102,7 @@ public class UndirectedGraphSeq implements Graph {
         while (!degreeS.isEmpty()) {
 
             System.out.println(degreeS.size());
-            degreeS = this.degreeSeq(edges);
-            System.out.println("UOUOO");
+
             float threshold = 2 * (1 + e) * densityS;
             filter(edges, degreeS, threshold);
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
@@ -112,6 +111,8 @@ public class UndirectedGraphSeq implements Graph {
                 sTilde = new HashSet<>(degreeS.keySet());
                 dSTilde = densityS;
             }
+
+            degreeS = this.degreeSeq(edges);
         }
 
         this.density = dSTilde;
@@ -133,7 +134,6 @@ public class UndirectedGraphSeq implements Graph {
                 list.set(outputSize++, e);
             }
         }
-        System.out.println("MEEEEE");
         list.subList(outputSize, inputSize).clear();
     }
 

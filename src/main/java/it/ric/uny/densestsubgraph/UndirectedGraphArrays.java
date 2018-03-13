@@ -75,7 +75,6 @@ public class UndirectedGraphArrays {
         // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
         while (!degreeS.isEmpty()) {
 
-            degreeS = this.degreeConc(edges, edges.size());
             float threshold = 2 * (1 + e) * densityS;
             filter(edges, degreeS, threshold);
 
@@ -83,6 +82,8 @@ public class UndirectedGraphArrays {
             if (densityS > densitySTilde) {
                 densitySTilde = densityS;
             }
+
+            degreeS = this.degreeConc(edges, edges.size());
         }
 
         this.density = densitySTilde;

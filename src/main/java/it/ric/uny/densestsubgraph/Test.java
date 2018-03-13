@@ -49,7 +49,7 @@ public class Test {
         // Sequenziale
         long startTime = System.nanoTime();
         UndirectedGraphSeq myGraph = new UndirectedGraphSeq(filename, nEdges, nNodes);
-        float densest = myGraph.densestSubgraph( 1);
+        float densest = myGraph.densestSubgraph( (float) 1.1);
         //float densest = myGraph.densestSubgraphRic((float) 1);
         long endTime = System.nanoTime();
         long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
