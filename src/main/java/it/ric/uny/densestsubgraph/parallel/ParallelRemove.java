@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
+import lombok.Data;
 
+@Data
 public class ParallelRemove extends RecursiveTask<ArrayList<Edge>> {
 
-    private static final int CUTOFF = 10000;
+    private static final int CUTOFF = 5000;
 
     private ArrayList<Edge> edges;
     private Map<Integer, Set<Integer>> degreeS;
@@ -30,15 +32,12 @@ public class ParallelRemove extends RecursiveTask<ArrayList<Edge>> {
             int inputSize = edges.size();
             int outputSize = 0;
 
-            for (int i = 0; i < inputSize; ++i) {
-                Edge e = edges.get(i);
-                int u = e.getU();
-                int v = e.getV();
-
-                if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
+            for (Edge e : edges) {
+                if (degreeS.get(e.getU()).size() > threshold && degreeS.get(e.getV()).size() > threshold) {
                     edges.set(outputSize++, e);
                 }
             }
+
             edges.subList(outputSize, inputSize).clear();
             return edges;
         }
@@ -53,8 +52,8 @@ public class ParallelRemove extends RecursiveTask<ArrayList<Edge>> {
         left.fork();
         ArrayList<Edge> edgesRight = right.compute();
         ArrayList<Edge> edgesLeft = left.join();
-        edgesLeft.addAll(edgesRight);
 
+        edgesLeft.addAll(edgesRight);
         return edgesLeft;
     }
 }

@@ -1,19 +1,11 @@
 package it.ric.uny.densestsubgraph;
 
-import static java.nio.file.Files.newBufferedReader;
-
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
+import it.ric.uny.densestsubgraph.utils.GraphParser;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.Data;
 
 @Data
@@ -27,27 +19,21 @@ public class UndirectedGraphSeq implements Graph {
     private float nNodes;
     // ArrayList di archi
     private ArrayList<Edge> edges;
-    // Insieme dei nodi
-    private Set<Integer> nodes;
     // Densita del sottografo più denso
     private float density;
     // Nodi sottografo più denso
     private Set<Integer> sTilde;
-
     // Grado associato ad ogni nodo (u, deg(u)).
     private HashMap<Integer, Set<Integer>> degreesMap;
 
     public UndirectedGraphSeq(String filename, float nEdges, float nNodes) {
 
-        this.edges = new ArrayList<>();
-        this.nodes = new HashSet<>();
+        this.edges = GraphParser.fileToEdge(filename);
         this.degreesMap = new HashMap<>();
         this.sTilde = new HashSet<>();
 
         this.nEdges = nEdges;
         this.nNodes = nNodes;
-
-        this.fileToGraph(filename);
     }
 
     public UndirectedGraphSeq(int nEdges, int nNodes) {
@@ -60,8 +46,8 @@ public class UndirectedGraphSeq implements Graph {
 
     public float densestSubgraphRic(float e) {
         float densityS = calcDensity(nEdges, nNodes);
-        Set<Integer> s = new HashSet<>(nodes);
         HashMap<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
+        Set<Integer> s = new HashSet<>(degreeS.keySet());
         return densestSubgraphRic(edges, s, degreeS, densityS, densityS, e);
     }
 
@@ -86,8 +72,8 @@ public class UndirectedGraphSeq implements Graph {
     }
 
     public float densestSubgraph(float e) {
-        Set<Integer> sTilde = new HashSet<>(nodes);
         Map<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
+        Set<Integer> sTilde = new HashSet<>(degreeS.keySet());
 
         return densestSubgraph(edges, degreeS, sTilde, e);
     }
@@ -102,15 +88,16 @@ public class UndirectedGraphSeq implements Graph {
         while (!degreeS.isEmpty()) {
 
             float threshold = 2 * (1 + e) * densityS;
+            // Rimuove archi con grado dei nodi <= threshold
             filter(edges, degreeS, threshold);
+            // Aggiorna il grado di ogni nodo
+            degreeS = this.degreeSeq(edges);
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
 
             if (densityS > dSTilde) {
                 sTilde = new HashSet<>(degreeS.keySet());
                 dSTilde = densityS;
             }
-
-            degreeS = this.degreeSeq(edges);
         }
 
         this.density = dSTilde;
@@ -141,7 +128,7 @@ public class UndirectedGraphSeq implements Graph {
      *
      * @return d
      */
-    public float calcDensity(float nEdges, float nNodes) {
+    private float calcDensity(float nEdges, float nNodes) {
         return nEdges / nNodes;
     }
 
@@ -154,7 +141,7 @@ public class UndirectedGraphSeq implements Graph {
         return degreesMap.get(n).size();
     }
 
-    public HashMap<Integer, Set<Integer>> degreeSeq(ArrayList<Edge> edges) {
+    private HashMap<Integer, Set<Integer>> degreeSeq(ArrayList<Edge> edges) {
         HashMap<Integer, Set<Integer>> degreesMap = new HashMap<>();
         for (Edge e : edges) {
             degreesMap.putIfAbsent(e.getU(), new HashSet<>());
@@ -162,68 +149,8 @@ public class UndirectedGraphSeq implements Graph {
 
             degreesMap.get(e.getU()).add(e.getV());
             degreesMap.get(e.getV()).add(e.getU());
-            //degreesMap.put(k, degreesMap.get(k) + 1);
         }
 
         return degreesMap;
     }
-
-    /**
-     * Reads from file and generates data structure for the graph
-     *
-     * @param filename file to read
-     */
-    private void fileToGraph(String filename) {
-
-        Pattern pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
-
-        try (BufferedReader br = newBufferedReader(Paths.get(filename),
-            StandardCharsets.UTF_8)) {
-            for (String line = null; (line = br.readLine()) != null; ) {
-
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.matches()) {
-                    int u = Integer.parseInt(matcher.group(1));
-                    int v = Integer.parseInt(matcher.group(2));
-
-                    nodes.add(u);
-                    nodes.add(v);
-                    edges.add(new Edge(u, v));
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("Lettura ok");
-    }
-
-/*    private void addEdge(int u, int v) {
-        if (!connections.containsKey(u)) {
-            connections.put(u, new HashSet<>());
-        }
-
-        if (!connections.containsKey(v)) {
-            connections.put(v, new HashSet<>());
-        }
-
-        connections.get(u).add(v);
-        connections.get(v).add(u);
-
-        degreesMap.put(u, 0);
-        degreesMap.put(v, 0);
-
-    }*/
-
-    /*    public HashMap<Integer, HashSet<Integer>> inducedEdge(HashSet<Integer> nodes) {
-        HashMap<Integer, HashSet<Integer>> square = new HashMap<>();
-
-        for (Integer n : nodes) {
-            HashSet<Integer> intersect = new HashSet<>(connections.get(n));
-            intersect.retainAll(nodes);
-            square.put(n, intersect);
-        }
-
-        return square;
-    }*/
 }

@@ -22,6 +22,7 @@ public class ParallelDegree extends RecursiveAction {
     private ArrayList<Edge> edges;
     //private Edge[] edges;
 
+    // Mappa (u, deg(u))
     private ConcurrentHashMap<Integer, Set<Integer>> degreeMap;
 
     private int start;
@@ -60,10 +61,6 @@ public class ParallelDegree extends RecursiveAction {
                 if (degreeMap.putIfAbsent(v, new HashSet<>()) != null) {
                     degreeMap.get(v).add(u);
                 }
-
-                /*if (degreeMap.putIfAbsent(v, 1) != null) {
-                    degreeMap.put(v, degreeMap.get(v) + 1);
-                }*/
             }
             return;
         }
