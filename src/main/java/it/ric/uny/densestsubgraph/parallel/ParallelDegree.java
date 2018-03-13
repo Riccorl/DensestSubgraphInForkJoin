@@ -55,9 +55,9 @@ public class ParallelDegree extends RecursiveAction {
                     degreeMap.put(u, degreeMap.get(u) + 1);
                 }
 
-                if (degreeMap.putIfAbsent(v, 1) != null) {
+                /*if (degreeMap.putIfAbsent(v, 1) != null) {
                     degreeMap.put(v, degreeMap.get(v) + 1);
-                }
+                }*/
             }
             return;
         }
@@ -72,8 +72,5 @@ public class ParallelDegree extends RecursiveAction {
         right.compute();
         left.join();
     }
-
-    //-------------------------------------------- GETTER --------------------------------------------
-
 
 }

@@ -2,6 +2,7 @@ package it.ric.uny.densestsubgraph;
 
 import static java.nio.file.Files.newBufferedReader;
 
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -74,7 +75,7 @@ public class UndirectedGraphSeq implements Graph {
 
         degreeS = this.degreeSeq(edges);
         float threshold = 2 * (1 + e) * densityS;
-        filter(edges, degreeS, s, threshold);
+        filter(edges, degreeS, threshold);
         densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
 
         if (densityS > dSTilde) {
@@ -85,30 +86,26 @@ public class UndirectedGraphSeq implements Graph {
     }
 
     public float densestSubgraph(float e) {
-        Set<Integer> s = new HashSet<>(nodes);
         Set<Integer> sTilde = new HashSet<>(nodes);
-        return densestSubgraph(edges, s, sTilde, e);
+        Map<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
+
+        return densestSubgraph(edges, degreeS, sTilde, e);
     }
 
-    private float densestSubgraph(ArrayList<Edge> edges, Set<Integer> s,
+    private float densestSubgraph(ArrayList<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         Set<Integer> sTilde, float e) {
 
         float densityS = calcDensity(nEdges, nNodes);
         float dSTilde = densityS;
 
-        Map<Integer, Set<Integer>> degreeS;
+        // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
+        while (!degreeS.isEmpty()) {
 
-        // Itera sugli archi alla ricerca di nodi con grado inferiore a
-        // 2*(1 + e) * d(S)
-        while (!s.isEmpty()) {
-
+            System.out.println(degreeS.size());
             degreeS = this.degreeSeq(edges);
-            s.retainAll(degreeS.keySet());
-
+            System.out.println("UOUOO");
             float threshold = 2 * (1 + e) * densityS;
-
-            filter(edges, degreeS, s, threshold);
-
+            filter(edges, degreeS, threshold);
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
 
             if (densityS > dSTilde) {
@@ -122,7 +119,7 @@ public class UndirectedGraphSeq implements Graph {
         return density;
     }
 
-    private void filter(ArrayList<Edge> list, Map<Integer, Set<Integer>> degreeS, Set<Integer> set,
+    private void filter(ArrayList<Edge> list, Map<Integer, Set<Integer>> degreeS,
         double threshold) {
         int inputSize = list.size();
         int outputSize = 0;
@@ -132,17 +129,11 @@ public class UndirectedGraphSeq implements Graph {
             int u = e.getU();
             int v = e.getV();
 
-            if (degreeS.get(u).size() <= threshold || degreeS.get(v).size() <= threshold) {
-                if (degreeS.get(u).size() <= threshold) {
-                    set.remove(u);
-                }
-                if (degreeS.get(v).size() <= threshold) {
-                    set.remove(v);
-                }
-            } else {
+            if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
                 list.set(outputSize++, e);
             }
         }
+        System.out.println("MEEEEE");
         list.subList(outputSize, inputSize).clear();
     }
 
@@ -153,7 +144,7 @@ public class UndirectedGraphSeq implements Graph {
      * @return d
      */
     public float calcDensity(float nEdges, float nNodes) {
-        return (nEdges) / nNodes;
+        return nEdges / nNodes;
     }
 
     /**

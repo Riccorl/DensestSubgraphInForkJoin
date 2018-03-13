@@ -3,7 +3,6 @@ package it.ric.uny.densestsubgraph;
 import static java.nio.file.Files.newBufferedReader;
 
 import it.ric.uny.densestsubgraph.parallel.ParallelDegree;
-import it.ric.uny.densestsubgraph.parallel.ParallelRemove;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,11 +39,12 @@ public class UndirectedGraphArrays {
     // ArrayList di archi
     private ArrayList<Edge> edges;
     //private Edge[] edges;
-    private Set<Integer> sTilde;
-
+    // Insieme dei nodi
     private Set<Integer> nodes;
+    // Nodi sottografo più denso
+    private Set<Integer> sTilde;
+    // Densita del grafo più denso
     private float density;
-
     // Mappa concorrente dei gradi
     // Grado associato ad ogni nodo (u, deg(u)).
     private ConcurrentHashMap<Integer, Integer> degreesMap;
@@ -64,40 +64,28 @@ public class UndirectedGraphArrays {
 
     public float densestSubgraph(float e) {
         this.degreesMap = this.degreeConc(edges, edges.size());
-
-        Set<Integer> s = new HashSet<>(nodes);
         Set<Integer> sTilde = new HashSet<>(nodes);
-
-        return densestSubgraph(edges, s, sTilde, e);
+        float densityS = calcDensity(nEdges, nNodes);
+        return densestSubgraph(edges, degreesMap, sTilde, densityS, densityS, e);
     }
 
-    private float densestSubgraph(ArrayList<Edge> edges, Set<Integer> s,
-        Set<Integer> sTilde, float e) {
-        float densityS = calcDensity(nEdges, nNodes);
-        float dSTilde = densityS;
+    private float densestSubgraph(ArrayList<Edge> edges, Map<Integer, Integer> degreeS,
+        Set<Integer> sTilde, float densityS, float densitySTilde, float e) {
 
-        ConcurrentHashMap<Integer, Integer> degreeS;
-
-        // Itera sugli archi alla ricerca di nodi con grado inferiore a
-        // 2*(1 + e) * d(S)
-        while (!s.isEmpty()) {
+        // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
+        while (!degreeS.isEmpty()) {
 
             degreeS = this.degreeConc(edges, edges.size());
-            s.retainAll(degreeS.keySet());
-
             float threshold = 2 * (1 + e) * densityS;
-
-            filter(edges, degreeS, s, threshold);
+            filter(edges, degreeS, threshold);
 
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
-
-            if (densityS > dSTilde) {
-                sTilde = new HashSet<>(degreeS.keySet());
-                dSTilde = densityS;
+            if (densityS > densitySTilde) {
+                densitySTilde = densityS;
             }
         }
 
-        this.density = dSTilde;
+        this.density = densitySTilde;
         this.sTilde = sTilde;
         return density;
 
@@ -128,7 +116,7 @@ public class UndirectedGraphArrays {
         return density;*/
     }
 
-    private void filter(ArrayList<Edge> list, ConcurrentHashMap<Integer, Integer> degreeS, Set<Integer> set,
+    private void filter(ArrayList<Edge> list, Map<Integer, Integer> degreeS,
         double threshold) {
         int inputSize = list.size();
         int outputSize = 0;
@@ -136,18 +124,9 @@ public class UndirectedGraphArrays {
         for (int i = 0; i < inputSize; ++i) {
             Edge e = list.get(i);
             int u = e.getU();
-            int degU = degreeS.get(u);
             int v = e.getV();
-            int degV = degreeS.get(v);
 
-            if (degU <= threshold || degV <= threshold) {
-                if (degU <= threshold) {
-                    set.remove(u);
-                }
-                if (degV <= threshold) {
-                    set.remove(v);
-                }
-            } else {
+            if (degreeS.get(u) > threshold && degreeS.get(v) > threshold) {
                 list.set(outputSize++, e);
             }
         }
