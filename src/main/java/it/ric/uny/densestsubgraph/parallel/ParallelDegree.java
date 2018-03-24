@@ -16,39 +16,41 @@ import lombok.Data;
 @Data
 public class ParallelDegree extends RecursiveAction {
 
-    private static final int CUTOFF = 5000;
+    //private static final int CUTOFF = 5000;
 
     // ArrayList contenente gli archi
     private ArrayList<Edge> edges;
     //private Edge[] edges;
-
     // Mappa (u, deg(u))
     private ConcurrentHashMap<Integer, Set<Integer>> degreeMap;
 
+    private int cutoff = 5000;
     private int start;
     private int end;
 
-    public ParallelDegree(ArrayList<Edge> edges,
-        ConcurrentHashMap<Integer, Set<Integer>> degreeMap, int end) {
+    public ParallelDegree(ArrayList<Edge> edges, ConcurrentHashMap<Integer, Set<Integer>> degreeMap,
+        int end, int cutoff) {
         this.edges = edges;
         this.degreeMap = degreeMap;
         this.start = 0;
         this.end = end;
+        this.cutoff = cutoff;
     }
 
     private ParallelDegree(ArrayList<Edge> edges,
-        ConcurrentHashMap<Integer, Set<Integer>> degreeMap, int start, int end) {
+        ConcurrentHashMap<Integer, Set<Integer>> degreeMap, int start, int end, int cutoff) {
         this.edges = edges;
         this.degreeMap = degreeMap;
         this.start = start;
         this.end = end;
+        this.cutoff = cutoff;
     }
 
     @Override
     protected void compute() {
 
         // Sequential
-        if (end - start < CUTOFF) {
+        if (end - start < cutoff) {
             for (int i = start; i < end; i++) {
                 // Nodo da aggiornare
                 int u = edges.get(i).getU();
@@ -68,8 +70,8 @@ public class ParallelDegree extends RecursiveAction {
         // Parallel
         int mid = (start + end) / 2;
 
-        ParallelDegree left = new ParallelDegree(edges, degreeMap, start, mid);
-        ParallelDegree right = new ParallelDegree(edges, degreeMap, mid, end);
+        ParallelDegree left = new ParallelDegree(edges, degreeMap, start, mid, cutoff);
+        ParallelDegree right = new ParallelDegree(edges, degreeMap, mid, end, cutoff);
 
         left.fork();
         right.compute();

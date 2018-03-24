@@ -1,59 +1,76 @@
 package it.ric.uny.densestsubgraph;
 
-import com.google.common.graph.MutableGraph;
 import it.ric.uny.densestsubgraph.utils.GraphParser;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.OptionalInt;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class Test {
 
     public static void main(String[] args) {
 
-        MutableGraph<Integer> graphGuava = null;
+        // Local
         //String filename = "data/dummy_graph.txt";
         //String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
         //String filename = "data/ca-GrQc.txt";                 float nEdges = 14496;     float nNodes = 5242;
         //String filename = "data/facebook_combined.txt";       float nEdges = 88234;     float nNodes = 4039;
-        String filename = "data/ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
-        //String filename = "data/ca-AstroPh.txt";              float nEdges = 198110;    float nNodes = 18772;
+        //String filename = "data/ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
+        //String filename = "ca-AstroPh.txt";              float nEdges = 198110;    float nNodes = 18772;
         //String filename = "data/roadNet-CA.txt";              float nEdge = 2766607;    float nNodes = 1965206;
         //String filename = "data/as-skitter.txt";              float nEdges = 11095298;  float nNodes = 1696415;
         //String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
         //String filename = "data/wiki-topcats.txt";            float nEdges = 28511807;  float nNodes = 1791489;
         //String filename = "data/soc-LiveJournal1.txt";        float nEdge = 68993773;   float nNodes = 4847571;
 
-        int node = 0;
+        // Remote
+        //String filename = "ca-GrQc.txt";                 float nEdges = 14496;     float nNodes = 5242;
+        //String filename = "facebook_combined.txt";       float nEdges = 88234;     float nNodes = 4039;
+        //String filename = "ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
+        //String filename = "ca-AstroPh.txt";              float nEdges = 198110;    float nNodes = 18772;
+        //String filename = "roadNet-CA.txt";              float nEdge = 2766607;    float nNodes = 1965206;
+        //String filename = "as-skitter.txt";              float nEdges = 11095298;  float nNodes = 1696415;
+        //String filename = "cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
+        //String filename = "wiki-topcats.txt";            float nEdges = 28511807;  float nNodes = 1791489;
+        //String filename = "com-lj.ungraph.txt";            float nEdges = 34681189;  float nNodes = 3997962;
+        //String filename = "soc-LiveJournal1.txt";        float nEdge = 68993773;   float nNodes = 4847571;
 
-        // Guava
-        /*try {
-            graphGuava = GraphParser.parseGuava(filename);
-        } catch (IOException e) {
-            e.printStackTrace();
+        String filename = args[0];
+        float epsilon = Float.parseFloat(args[1]);
+        //float epsilon = (float) 1;
+
+        // CUTOFF
+        int cutoffDegree;
+        int cutoffRemove;
+
+        try {
+            cutoffDegree = Integer.parseInt(args[2]);
+            cutoffRemove = Integer.parseInt(args[3]);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            cutoffDegree = 5000;
+            cutoffRemove = 5000;
         }
 
-        long startTimeG = System.currentTimeMillis();
-        int deg = graphGuava.degree(node);
-        long endTimeG = System.currentTimeMillis();
-        double guavaTime = endTimeG - startTimeG;
-        System.out.println("Guava Degree: " + deg);
-        System.out.println("Guava Time: " + guavaTime + "ms");
-
-        System.out.println("");*/
+        System.out.println();
+        System.out.println("Filename: " + filename);
+        //System.out.println("Numero di nodi: " + (int) nNodes);
+        //System.out.println("Numero di archi: " + (int) nEdges);
+        System.out.println("Fattore di approssimazione epsilon: " + epsilon);
+        System.out.println();
+        System.out.println("Cutoff Grado: " + cutoffDegree);
+        System.out.println("Cutoff Rimozione: " + cutoffRemove);
+        System.out.println();
+        System.out.println("Reading...");
+        ArrayList<Edge> edges = GraphParser.fileToEdge(filename);
+        System.out.println("Read ok");
+        System.out.println();
 
         // Sequenziale
         long startTime = System.nanoTime();
-        UndirectedGraphSeq myGraph = new UndirectedGraphSeq(filename, nEdges, nNodes);
-        float densest = myGraph.densestSubgraph( (float) 1.1);
+        UndirectedGraphSeq myGraph = new UndirectedGraphSeq(new ArrayList<>(edges));
+        float densest = myGraph.densestSubgraph(epsilon);
         //float densest = myGraph.densestSubgraphRic((float) 1);
         long endTime = System.nanoTime();
         long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-        System.out.println("Sequential Densest Time: " + time + "ms");
+        System.out.println("Sequential Densest Time: " + time + " ms");
         //System.out.println("Densest subgraph nodes: " + densest.size());
         System.out.println("Densest subgraph d: " + densest);
 
@@ -64,8 +81,10 @@ public class Test {
         System.out.println();
 
         long startTimeP = System.nanoTime();
-        UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(filename, nEdges, nNodes);
-        float densestP = graphArrays.densestSubgraph((float) 1.1);
+        UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(new ArrayList<>(edges));
+        graphArrays.setCutoffDegree(cutoffDegree);
+        graphArrays.setCutoffRemove(cutoffRemove);
+        float densestP = graphArrays.densestSubgraph(epsilon);
         long endTimeP = System.nanoTime();
         long timeP = TimeUnit.NANOSECONDS.toMillis(endTimeP - startTimeP);
         System.out.println("Parallel Densest Time: " + timeP + " ms");
@@ -100,15 +119,5 @@ public class Test {
         //System.out.println("Media tempi: " + media + " ms");
         //int degPar = graphArrays.degree(node);
         //System.out.println("Degree Array: " + degPar);
-
-        // Induced Edge Set
-
-/*      HashSet<Integer> s = new HashSet<>();
-        s.add(0);
-        s.add(1);
-        s.add(2);
-
-        System.out.println(myGraph.inducedEdge(s));*/
-
     }
 }

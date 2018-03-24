@@ -36,17 +36,16 @@ public class UndirectedGraphSeq implements Graph {
         this.nNodes = nNodes;
     }
 
-    public UndirectedGraphSeq(int nEdges, int nNodes) {
-        this.edges = new ArrayList<>();
+    public UndirectedGraphSeq(ArrayList<Edge> edges) {
+        this.edges = edges;
         this.degreesMap = new HashMap<>();
 
-        this.nEdges = nEdges;
-        this.nNodes = nNodes;
+        this.nEdges = edges.size();
     }
 
     public float densestSubgraphRic(float e) {
-        float densityS = calcDensity(nEdges, nNodes);
         HashMap<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
+        float densityS = calcDensity(edges.size(), degreesMap.keySet().size());
         Set<Integer> s = new HashSet<>(degreeS.keySet());
         return densestSubgraphRic(edges, s, degreeS, densityS, densityS, e);
     }
@@ -81,7 +80,7 @@ public class UndirectedGraphSeq implements Graph {
     private float densestSubgraph(ArrayList<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         Set<Integer> sTilde, float e) {
 
-        float densityS = calcDensity(nEdges, nNodes);
+        float densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
         float dSTilde = densityS;
 
         // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)

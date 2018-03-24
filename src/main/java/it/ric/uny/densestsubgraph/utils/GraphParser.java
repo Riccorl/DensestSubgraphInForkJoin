@@ -1,59 +1,53 @@
 package it.ric.uny.densestsubgraph.utils;
 
+import static java.nio.file.Files.newBufferedReader;
+
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
+import it.ric.uny.densestsubgraph.Edge;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class GraphParser {
 
     private static final String COMMENT_CHAR = "#";
 
+    /**
+     * Reads from file and generates data structure for the graph
+     *
+     * @param filename file to read
+     */
+    public static ArrayList<Edge> fileToEdge(String filename) {
 
-    public static HashMap<Integer, HashSet<Integer>> toGraph(String filename) {
+        Pattern pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
 
-        HashMap<Integer, HashSet<Integer>> graph = new HashMap<>();
-        List<String> rows = parse(filename);
+        ArrayList<Edge> edges = new ArrayList<>();
+        try (BufferedReader br = newBufferedReader(Paths.get(filename), StandardCharsets.UTF_8)) {
+            for (String line = null; (line = br.readLine()) != null; ) {
 
-        rows.forEach(x -> {
-            if (x.startsWith(COMMENT_CHAR)) {
-                return;
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.matches()) {
+                    int u = Integer.parseInt(matcher.group(1));
+                    int v = Integer.parseInt(matcher.group(2));
+
+                    edges.add(new Edge(u, v));
+                }
             }
-
-            String[] row = x.split("[\t ]");
-            int n1 = Integer.parseInt(row[0]);
-            int n2 = Integer.parseInt(row[1]);
-            if (!graph.containsKey(n1)) {
-                HashSet<Integer> set = new HashSet<>();
-                set.add(n2);
-                graph.put(n1, set);
-            } else {
-                HashSet<Integer> set = graph.get(n1);
-                set.add(n2);
-                graph.put(n1, set);
-            }
-        });
-
-        return graph;
-    }
-
-    private static List<String> parse(String filename) {
-
-        List<String> rows = new ArrayList<>();
-
-        try (Stream<String> stream = Files.lines(Paths.get(filename))) {
-            stream.forEach(rows::add);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return rows;
+        return edges;
     }
 
     public static MutableGraph<Integer> parseGuava(String filename) throws IOException {
