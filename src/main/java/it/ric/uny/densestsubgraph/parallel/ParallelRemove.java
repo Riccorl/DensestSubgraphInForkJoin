@@ -1,23 +1,24 @@
 package it.ric.uny.densestsubgraph.parallel;
 
-import it.ric.uny.densestsubgraph.Edge;
+import it.ric.uny.densestsubgraph.model.Edge;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
 
-public class ParallelRemove extends RecursiveTask<ArrayList<Edge>> {
+public class ParallelRemove extends RecursiveTask<List<Edge>> {
 
     //private static final int CUTOFF = 50000;
 
-    private ArrayList<Edge> edges;
+    private List<Edge> edges;
     private Map<Integer, Set<Integer>> degreeS;
     private int start;
     private int end;
     private float threshold;
     private int cutoff;
 
-    public ParallelRemove(ArrayList<Edge> edges, Map<Integer, Set<Integer>> degreeS,
+    public ParallelRemove(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         float threshold, int cutoff) {
 
         this.edges = edges;
@@ -27,7 +28,7 @@ public class ParallelRemove extends RecursiveTask<ArrayList<Edge>> {
         this.cutoff = cutoff;
     }
 
-    private ParallelRemove(ArrayList<Edge> edges, Map<Integer, Set<Integer>> degreeS, int start,
+    private ParallelRemove(List<Edge> edges, Map<Integer, Set<Integer>> degreeS, int start,
         int end, float threshold, int cutoff) {
 
         this.edges = edges;
@@ -39,11 +40,11 @@ public class ParallelRemove extends RecursiveTask<ArrayList<Edge>> {
     }
 
     @Override
-    protected ArrayList<Edge> compute() {
+    protected List<Edge> compute() {
 
         // Sequential
         if (end - start < cutoff) {
-            ArrayList<Edge> newEdge = new ArrayList<>();
+            List<Edge> newEdge = new ArrayList<>();
             for (int i = start; i < end; i++) {
                 Edge edge = edges.get(i);
                 int u = edge.getU();
@@ -63,8 +64,8 @@ public class ParallelRemove extends RecursiveTask<ArrayList<Edge>> {
         ParallelRemove right = new ParallelRemove(edges, degreeS, mid, end, threshold, cutoff);
 
         left.fork();
-        ArrayList<Edge> rightArray = right.compute();
-        ArrayList<Edge> leftArray = left.join();
+        List<Edge> rightArray = right.compute();
+        List<Edge> leftArray = left.join();
         leftArray.addAll(rightArray);
 
         return leftArray;

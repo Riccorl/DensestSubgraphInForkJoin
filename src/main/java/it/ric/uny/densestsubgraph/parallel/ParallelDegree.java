@@ -1,8 +1,8 @@
 package it.ric.uny.densestsubgraph.parallel;
 
-import it.ric.uny.densestsubgraph.Edge;
-import java.util.ArrayList;
+import it.ric.uny.densestsubgraph.model.Edge;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveAction;
@@ -19,7 +19,7 @@ public class ParallelDegree extends RecursiveAction {
     //private static final int CUTOFF = 5000;
 
     // ArrayList contenente gli archi
-    private ArrayList<Edge> edges;
+    private List<Edge> edges;
     //private Edge[] edges;
     // Mappa (u, deg(u))
     private ConcurrentHashMap<Integer, Set<Integer>> degreeMap;
@@ -28,7 +28,7 @@ public class ParallelDegree extends RecursiveAction {
     private int start;
     private int end;
 
-    public ParallelDegree(ArrayList<Edge> edges, ConcurrentHashMap<Integer, Set<Integer>> degreeMap,
+    public ParallelDegree(List<Edge> edges, ConcurrentHashMap<Integer, Set<Integer>> degreeMap,
         int end, int cutoff) {
         this.edges = edges;
         this.degreeMap = degreeMap;
@@ -37,7 +37,7 @@ public class ParallelDegree extends RecursiveAction {
         this.cutoff = cutoff;
     }
 
-    private ParallelDegree(ArrayList<Edge> edges,
+    private ParallelDegree(List<Edge> edges,
         ConcurrentHashMap<Integer, Set<Integer>> degreeMap, int start, int end, int cutoff) {
         this.edges = edges;
         this.degreeMap = degreeMap;
