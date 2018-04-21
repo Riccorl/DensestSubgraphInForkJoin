@@ -1,5 +1,6 @@
 package it.ric.uny.densestsubgraph;
 
+import it.ric.uny.densestsubgraph.model.Edge;
 import it.ric.uny.densestsubgraph.utils.GraphParser;
 import java.util.ArrayList;
 import java.util.HashMap;

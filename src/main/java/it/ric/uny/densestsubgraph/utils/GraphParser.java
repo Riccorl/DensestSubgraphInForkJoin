@@ -4,15 +4,13 @@ import static java.nio.file.Files.newBufferedReader;
 
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
-import it.ric.uny.densestsubgraph.Edge;
+import it.ric.uny.densestsubgraph.model.Edge;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,11 +25,11 @@ public class GraphParser {
      *
      * @param filename file to read
      */
-    public static ArrayList<Edge> fileToEdge(String filename) {
+    public static List<Edge> fileToEdge(String filename) {
 
         Pattern pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
 
-        ArrayList<Edge> edges = new ArrayList<>();
+        List<Edge> edges = new ArrayList<>();
         try (BufferedReader br = newBufferedReader(Paths.get(filename), StandardCharsets.UTF_8)) {
             for (String line = null; (line = br.readLine()) != null; ) {
 
@@ -40,7 +38,7 @@ public class GraphParser {
                     int u = Integer.parseInt(matcher.group(1));
                     int v = Integer.parseInt(matcher.group(2));
 
-                    edges.add(new Edge(u, v));
+                    edges.add(new it.ric.uny.densestsubgraph.model.Edge(u, v));
                 }
             }
         } catch (IOException e) {

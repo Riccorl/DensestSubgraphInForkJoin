@@ -1,23 +1,16 @@
 package it.ric.uny.densestsubgraph;
 
-import static java.nio.file.Files.newBufferedReader;
-
+import it.ric.uny.densestsubgraph.model.Edge;
 import it.ric.uny.densestsubgraph.parallel.ParallelDegree;
 import it.ric.uny.densestsubgraph.parallel.ParallelRemove;
 import it.ric.uny.densestsubgraph.utils.GraphParser;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.Data;
 
 // Modifica con ConcurrentHashMap
@@ -36,7 +29,7 @@ public class UndirectedGraphArrays {
     // Numero di nodi
     private float nNodes;
     // ArrayList di archi
-    private ArrayList<Edge> edges;
+    private List<Edge> edges;
     //private Edge[] edges;
     // Nodi sottografo più denso
     private Set<Integer> sTilde;
@@ -56,7 +49,7 @@ public class UndirectedGraphArrays {
         this.degreesMap = new ConcurrentHashMap<>((int) nNodes, 0.55f);
     }
 
-    public UndirectedGraphArrays(ArrayList<Edge> edges) {
+    public UndirectedGraphArrays(List<Edge> edges) {
         this.edges = edges;
         this.degreesMap = new ConcurrentHashMap<>((int) nNodes, 0.55f);
     }
@@ -70,7 +63,7 @@ public class UndirectedGraphArrays {
         return densestSubgraph(edges, degreesMap, sTilde, densityS, densityS, e);
     }
 
-    private float densestSubgraph(ArrayList<Edge> edges,
+    private float densestSubgraph(List<Edge> edges,
         ConcurrentHashMap<Integer, Set<Integer>> degreeS,
         Set<Integer> sTilde, float densityS, float densitySTilde, float e) {
 
@@ -94,7 +87,7 @@ public class UndirectedGraphArrays {
         return density;
     }
 
-    private ConcurrentHashMap<Integer, Set<Integer>> degreeSeq(ArrayList<Edge> edges) {
+    private ConcurrentHashMap<Integer, Set<Integer>> degreeSeq(List<Edge> edges) {
         ConcurrentHashMap<Integer, Set<Integer>> degreesMap = new ConcurrentHashMap<>();
         for (Edge e : edges) {
             degreesMap.putIfAbsent(e.getU(), new HashSet<>());
@@ -107,7 +100,7 @@ public class UndirectedGraphArrays {
         return degreesMap;
     }
 
-    private void filter(ArrayList<Edge> list, Map<Integer, Set<Integer>> degreeS,
+    private void filter(List<Edge> list, Map<Integer, Set<Integer>> degreeS,
         double threshold) {
         int inputSize = list.size();
         int outputSize = 0;
@@ -124,7 +117,7 @@ public class UndirectedGraphArrays {
         list.subList(outputSize, inputSize).clear();
     }
 
-    public ConcurrentHashMap<Integer, Set<Integer>> degreeConc(ArrayList<Edge> edges, int nEdges) {
+    public ConcurrentHashMap<Integer, Set<Integer>> degreeConc(List<Edge> edges, int nEdges) {
         ConcurrentHashMap<Integer, Set<Integer>> degreesMap = new ConcurrentHashMap<>();
         fjPool.invoke(new ParallelDegree(edges, degreesMap, nEdges, cutoffDegree));
         return degreesMap;

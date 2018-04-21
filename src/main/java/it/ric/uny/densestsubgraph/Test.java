@@ -1,8 +1,7 @@
 package it.ric.uny.densestsubgraph;
 
 import it.ric.uny.densestsubgraph.utils.GraphParser;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 public class Test {
 
@@ -59,65 +58,67 @@ public class Test {
         System.out.println("Cutoff Rimozione: " + cutoffRemove);
         System.out.println();
         System.out.println("Reading...");
-        ArrayList<Edge> edges = GraphParser.fileToEdge(filename);
+        List<it.ric.uny.densestsubgraph.model.Edge> edges = GraphParser.fileToEdge(filename);
         System.out.println("Read ok");
         System.out.println();
 
-        // Sequenziale
-        long startTime = System.nanoTime();
-        UndirectedGraphSeq myGraph = new UndirectedGraphSeq(new ArrayList<>(edges));
-        float densest = myGraph.densestSubgraph(epsilon);
-        //float densest = myGraph.densestSubgraphRic((float) 1);
-        long endTime = System.nanoTime();
-        long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-        System.out.println("Sequential Densest Time: " + time + " ms");
-        //System.out.println("Densest subgraph nodes: " + densest.size());
-        System.out.println("Densest subgraph d: " + densest);
 
-//        int degSeq = myGraph.degree(node);
-//        System.out.println("Degree Sequential: " + degSeq);
-//        System.out.println("dG = " + myGraph.calcDensity(nEdges, nNodes));
 
-        System.out.println();
-
-        long startTimeP = System.nanoTime();
-        UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(new ArrayList<>(edges));
-        graphArrays.setCutoffDegree(cutoffDegree);
-        graphArrays.setCutoffRemove(cutoffRemove);
-        float densestP = graphArrays.densestSubgraph(epsilon);
-        long endTimeP = System.nanoTime();
-        long timeP = TimeUnit.NANOSECONDS.toMillis(endTimeP - startTimeP);
-        System.out.println("Parallel Densest Time: " + timeP + " ms");
-        //System.out.println("Densest subgraph nodes: " + densest.size());
-        //System.out.println("Densest subgraph d: " + graphArrays.getDensity());
-        System.out.println("Densest subgraph d: " + densestP);
-
-        System.out.println();
-        System.out.println("Speedup: " + (float) time/timeP);
-
-        /*ArrayList<Integer> valTempi = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            long startTimeA = System.nanoTime();
-
-            graphArrays.degreeConc();
-
-            long endTimeA = System.nanoTime();
-            long timeA = TimeUnit.NANOSECONDS.toMillis(endTimeA - startTimeA);
-            System.out.println("Array Time: " + timeA + " ms");
-
-            valTempi.add((int) timeA);
-
-            if (i < 9) {
-                graphArrays.setDegreesMap(new ConcurrentHashMap<>(nNodes,
-                    0.99f));
-            }
-        }*/
-
-        //Integer max = valTempi.stream().mapToInt(Integer::intValue).max().getAsInt();
-        //valTempi.remove(max);
-        //int media = valTempi.stream().mapToInt(Integer::intValue).sum() / valTempi.size();
-        //System.out.println("Media tempi: " + media + " ms");
-        //int degPar = graphArrays.degree(node);
-        //System.out.println("Degree Array: " + degPar);
+//        // Sequenziale
+//        long startTime = System.nanoTime();
+//        UndirectedGraphSeq myGraph = new UndirectedGraphSeq(new ArrayList<>(edges));
+//        float densest = myGraph.densestSubgraph(epsilon);
+//        //float densest = myGraph.densestSubgraphRic((float) 1);
+//        long endTime = System.nanoTime();
+//        long time = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+//        System.out.println("Sequential Densest Time: " + time + " ms");
+//        //System.out.println("Densest subgraph nodes: " + densest.size());
+//        System.out.println("Densest subgraph d: " + densest);
+//
+////        int degSeq = myGraph.degree(node);
+////        System.out.println("Degree Sequential: " + degSeq);
+////        System.out.println("dG = " + myGraph.calcDensity(nEdges, nNodes));
+//
+//        System.out.println();
+//
+//        long startTimeP = System.nanoTime();
+//        UndirectedGraphArrays graphArrays = new UndirectedGraphArrays(new ArrayList<>(edges));
+//        graphArrays.setCutoffDegree(cutoffDegree);
+//        graphArrays.setCutoffRemove(cutoffRemove);
+//        float densestP = graphArrays.densestSubgraph(epsilon);
+//        long endTimeP = System.nanoTime();
+//        long timeP = TimeUnit.NANOSECONDS.toMillis(endTimeP - startTimeP);
+//        System.out.println("Parallel Densest Time: " + timeP + " ms");
+//        //System.out.println("Densest subgraph nodes: " + densest.size());
+//        //System.out.println("Densest subgraph d: " + graphArrays.getDensity());
+//        System.out.println("Densest subgraph d: " + densestP);
+//
+//        System.out.println();
+//        System.out.println("Speedup: " + (float) time/timeP);
+//
+//        /*ArrayList<Integer> valTempi = new ArrayList<>();
+//        for (int i = 0; i < 10; i++) {
+//            long startTimeA = System.nanoTime();
+//
+//            graphArrays.degreeConc();
+//
+//            long endTimeA = System.nanoTime();
+//            long timeA = TimeUnit.NANOSECONDS.toMillis(endTimeA - startTimeA);
+//            System.out.println("Array Time: " + timeA + " ms");
+//
+//            valTempi.add((int) timeA);
+//
+//            if (i < 9) {
+//                graphArrays.setDegreesMap(new ConcurrentHashMap<>(nNodes,
+//                    0.99f));
+//            }
+//        }*/
+//
+//        //Integer max = valTempi.stream().mapToInt(Integer::intValue).max().getAsInt();
+//        //valTempi.remove(max);
+//        //int media = valTempi.stream().mapToInt(Integer::intValue).sum() / valTempi.size();
+//        //System.out.println("Media tempi: " + media + " ms");
+//        //int degPar = graphArrays.degree(node);
+//        //System.out.println("Degree Array: " + degPar);
     }
 }

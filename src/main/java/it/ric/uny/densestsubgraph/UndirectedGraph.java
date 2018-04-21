@@ -1,8 +1,6 @@
 package it.ric.uny.densestsubgraph;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,8 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
 public class UndirectedGraph implements Graph {
@@ -28,7 +25,7 @@ public class UndirectedGraph implements Graph {
     // Grado associato ad ogni nodo (u, deg(u)).
     private HashMap<Integer, Integer> degreeMapPar;
 
-    private ArrayList<Integer> nodeList;
+    private List<Integer> nodeList;
 
     // Densità del grafo
     private int graphDensity;
