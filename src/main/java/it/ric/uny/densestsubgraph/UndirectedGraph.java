@@ -1,156 +1,118 @@
 package it.ric.uny.densestsubgraph;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import it.ric.uny.densestsubgraph.model.Edge;
+import it.ric.uny.densestsubgraph.parallel.ParallelDegree;
+import it.ric.uny.densestsubgraph.parallel.ParallelRemove;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
+import lombok.Data;
 
-public class UndirectedGraph implements Graph {
+// Modifica con ConcurrentHashMap
+// Source Code: https://goo.gl/tZqrkB
+// Link utili:
+// https://howtodoinjava.com/core-java/multi-threading/best-practices-for-using-concurrenthashmap/
+
+@Data
+public class UndirectedGraph {
 
     private static final String COMMENT_CHAR = "#";
     private static ForkJoinPool fjPool = new ForkJoinPool();
 
-    // Grafo.
-    private HashMap<Integer, HashSet<Integer>> graph;
-
-    // Grafo con archi duplicati per ogni nodo, utile per calcolo del grado.
-    private HashMap<Integer, HashSet<Integer>> connections;
-
+    // Numero di archi
+    private float nEdges;
+    // Numero di nodi
+    private float nNodes;
+    // ArrayList di archi
+    private List<Edge> edges;
+    //private Edge[] edges;
+    // Nodi sottografo più denso
+    private Set<Integer> sTilde;
+    // Densita del grafo più denso
+    private float density;
+    // Mappa concorrente dei gradi
     // Grado associato ad ogni nodo (u, deg(u)).
-    private HashMap<Integer, Integer> degreeMapPar;
+    private ConcurrentHashMap<Integer, Set<Integer>> degreesMap;
 
-    private List<Integer> nodeList;
+    // CUTOFF
+    int cutoffDegree = 5000;
+    int cutoffRemove = 5000;
 
-    // Densità del grafo
-    private int graphDensity;
-
-    // PROVA
-    double time = 0;
-
-    public UndirectedGraph(String filename) {
-
-        this.graph = new HashMap<>();
-        this.connections = new HashMap<>();
-
-        this.fileToGraph(filename);
-
-        this.nodeList = new ArrayList<>(connections.keySet());
-        //graphDensity = calcDensity(graph);
+    public UndirectedGraph(List<Edge> edges) {
+        this.edges = new ArrayList<>(edges);
+        this.nEdges = edges.size();
+        this.degreesMap = new ConcurrentHashMap<>((int) nNodes);
     }
 
-    /**
-     * For undirected simple graphs G = (V,E), the graph density is defined as
-     * d = 2|E|/(|V|*(|V| - 1))
-     *
-     * @return      d
-     */
-    private int calcDensity(HashMap<Integer, HashSet<Integer>> graph) {
+    public float densestSubgraph(float e) {
+        degreesMap = this.degreeConc(edges, edges.size());
+        //degreesMap = this.degreeSeq(edges);
+        Set<Integer> sTilde = new HashSet<>(degreesMap.keySet());
+        float densityS = calcDensity(edges.size() / 2, degreesMap.keySet().size());
 
-        int nEdge = graph.keySet().stream().mapToInt(x -> x).map(x -> graph.get(x).size()).sum();
-        int nNode = graph.keySet().size() * (graph.keySet().size() - 1);
-
-        return nEdge / nNode;
+        return densestSubgraph(edges, degreesMap, sTilde, densityS, densityS, e);
     }
 
-    public HashMap<Integer, HashSet<Integer>> inducedEdge(HashSet<Integer> nodes) {
-        HashMap<Integer, HashSet<Integer>> square = new HashMap<>();
+    private float densestSubgraph(List<Edge> edges,
+        ConcurrentHashMap<Integer, Set<Integer>> degreeS,
+        Set<Integer> sTilde, float densityS, float densitySTilde, float e) {
 
-        for (Integer n : nodes) {
-            HashSet<Integer> intersect = new HashSet<>(connections.get(n));
-            intersect.retainAll(nodes);
-            square.put(n, intersect);
-        }
+        // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
+        while (!degreeS.isEmpty()) {
 
-        return square;
-    }
+            float threshold = 2 * (1 + e) * densityS;
+            //filter(edges, degreeS, threshold);
+            int edgesSize = edges.size();
+            int clear = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold, cutoffRemove));
+            edges.subList(clear, edgesSize).clear();
+            degreeS = this.degreeConc(edges, edges.size());
+            //degreeS = this.degreeSeq(edges);
 
-    @Override
-    public int degree(int n) {
-        return degreeMapPar.get(n);
-    }
-
-    /**
-     * Wrapper for prepareParallel method
-     */
-    public void degreePrepareParallel() {
-        this.degreeMapPar = prepareParallel();
-    }
-
-    /**
-     * Precalculation of all nodes' degree in parallel
-     *
-     * @return degreeMap with degrees
-     */
-    private HashMap<Integer, Integer> prepareParallel() {
-
-        return null;
-    }
-
-    /**
-     * Reads from file and generates data structure for the graph
-     *
-     * @param filename file to read
-     */
-    private void fileToGraph(String filename) {
-
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(filename),
-            StandardCharsets.UTF_8)) {
-            for (String line = null; (line = br.readLine()) != null;) {
-
-                if (line.startsWith(COMMENT_CHAR)) {
-                    continue;
-                }
-
-                String[] row = line.split("[\t ]");
-
-                int n1 = Integer.parseInt(row[0]);
-                int n2 = Integer.parseInt(row[1]);
-
-                addEdge(n1, n2);
+            densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
+            if (densityS > densitySTilde) {
+                densitySTilde = densityS;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-        System.out.println("Lettura ok");
-
+        this.density = densitySTilde;
+        this.sTilde = sTilde;
+        return density;
     }
 
-    private void addEdge(int u, int v) {
-        if (!connections.containsKey(u)) {
-            connections.put(u, new HashSet<>());
+    private ConcurrentHashMap<Integer, Set<Integer>> degreeSeq(List<Edge> edges) {
+        ConcurrentHashMap<Integer, Set<Integer>> degreesMap = new ConcurrentHashMap<>();
+        for (Edge e : edges) {
+            degreesMap.putIfAbsent(e.getU(), new HashSet<>());
+            degreesMap.putIfAbsent(e.getV(), new HashSet<>());
+
+            degreesMap.get(e.getU()).add(e.getV());
+            degreesMap.get(e.getV()).add(e.getU());
         }
 
-        if (!connections.containsKey(v)) {
-            connections.put(v, new HashSet<>());
-        }
-
-        connections.get(u).add(v);
-        connections.get(v).add(u);
-
+        return degreesMap;
     }
 
-    //-------------------------------------------- GETTER --------------------------------------------
-
-    public HashMap<Integer, Integer> getDegreeMapPar() {
-        return degreeMapPar;
+    public ConcurrentHashMap<Integer, Set<Integer>> degreeConc(List<Edge> edges, int nEdges) {
+        ConcurrentHashMap<Integer, Set<Integer>> degreesMap = new ConcurrentHashMap<>();
+        fjPool.invoke(new ParallelDegree(edges, degreesMap, nEdges, cutoffDegree));
+        return degreesMap;
     }
 
-    public HashMap<Integer, HashSet<Integer>> getGraph() {
-        return graph;
+    public int degree(int n) {
+        //return degrees[n];
+        return degreesMap.get(n).size();
     }
 
-    public HashMap<Integer, HashSet<Integer>> getConnections() {
-        return connections;
-    }
-
-    public int getGraphDensity() {
-        return graphDensity;
+    /**
+     * For undirected simple graphs G = (V,E), and S a subset of G,
+     * the graph density is defined as d = |E(S)| / |S|
+     *
+     * @return d
+     */
+    private float calcDensity(float nEdges, float nNodes) {
+        return nEdges / nNodes;
     }
 }

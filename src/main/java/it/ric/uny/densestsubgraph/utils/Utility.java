@@ -12,13 +12,32 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-public class GraphParser {
+public class Utility {
 
     private static final String COMMENT_CHAR = "#";
+
+    public static void filter(List<Edge> list, Map<Integer, Set<Integer>> degreeS,
+        double threshold) {
+        int inputSize = list.size();
+        int outputSize = 0;
+
+        for (int i = 0; i < inputSize; ++i) {
+            Edge e = list.get(i);
+            int u = e.getU();
+            int v = e.getV();
+
+            if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
+                list.set(outputSize++, e);
+            }
+        }
+        list.subList(outputSize, inputSize).clear();
+    }
 
     /**
      * Reads from file and generates data structure for the graph

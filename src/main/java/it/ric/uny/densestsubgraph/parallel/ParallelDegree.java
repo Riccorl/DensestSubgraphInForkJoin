@@ -24,7 +24,7 @@ public class ParallelDegree extends RecursiveAction {
     // Mappa (u, deg(u))
     private ConcurrentHashMap<Integer, Set<Integer>> degreeMap;
 
-    private int cutoff = 5000;
+    private int cutoff;
     private int start;
     private int end;
 
@@ -52,6 +52,7 @@ public class ParallelDegree extends RecursiveAction {
         // Sequential
         if (end - start < cutoff) {
             for (int i = start; i < end; i++) {
+                if (edges.get(i) == null) continue;
                 // Nodo da aggiornare
                 int u = edges.get(i).getU();
                 int v = edges.get(i).getV();
