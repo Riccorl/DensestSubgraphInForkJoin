@@ -6,6 +6,7 @@ import it.ric.uny.densestsubgraph.parallel.ParallelRemove;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
@@ -19,8 +20,7 @@ import lombok.Data;
 @Data
 public class UndirectedGraph {
 
-    private static final String COMMENT_CHAR = "#";
-    private static ForkJoinPool fjPool = new ForkJoinPool();
+    private static ForkJoinPool fjPool = ForkJoinPool.commonPool();
 
     // Numero di archi
     private float nEdges;
@@ -49,12 +49,12 @@ public class UndirectedGraph {
 
     public float densestSubgraph(float e) {
         degreesMap = this.degreeConc(edges, edges.size());
-        //degreesMap = this.degreeSeq(edges);
         Set<Integer> sTilde = new HashSet<>(degreesMap.keySet());
         float densityS = calcDensity(edges.size() / 2, degreesMap.keySet().size());
 
         return densestSubgraph(edges, degreesMap, sTilde, densityS, densityS, e);
     }
+
 
     private float densestSubgraph(List<Edge> edges,
         ConcurrentHashMap<Integer, Set<Integer>> degreeS,
@@ -64,12 +64,15 @@ public class UndirectedGraph {
         while (!degreeS.isEmpty()) {
 
             float threshold = 2 * (1 + e) * densityS;
-            //filter(edges, degreeS, threshold);
-            int edgesSize = edges.size();
-            int clear = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold, cutoffRemove));
-            edges.subList(clear, edgesSize).clear();
+
+            if (edges.size() > 1000) {
+                edges = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold, cutoffRemove));
+
+            } else {
+                edges = this.removeEdges(edges, degreeS, threshold);
+            }
+
             degreeS = this.degreeConc(edges, edges.size());
-            //degreeS = this.degreeSeq(edges);
 
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
             if (densityS > densitySTilde) {
@@ -80,6 +83,12 @@ public class UndirectedGraph {
         this.density = densitySTilde;
         this.sTilde = sTilde;
         return density;
+    }
+
+    public ConcurrentHashMap<Integer, Set<Integer>> degreeConc(List<Edge> edges, int nEdges) {
+        ConcurrentHashMap<Integer, Set<Integer>> degreesMap = new ConcurrentHashMap<>();
+        fjPool.invoke(new ParallelDegree(edges, degreesMap, nEdges, cutoffDegree));
+        return degreesMap;
     }
 
     private ConcurrentHashMap<Integer, Set<Integer>> degreeSeq(List<Edge> edges) {
@@ -95,10 +104,18 @@ public class UndirectedGraph {
         return degreesMap;
     }
 
-    public ConcurrentHashMap<Integer, Set<Integer>> degreeConc(List<Edge> edges, int nEdges) {
-        ConcurrentHashMap<Integer, Set<Integer>> degreesMap = new ConcurrentHashMap<>();
-        fjPool.invoke(new ParallelDegree(edges, degreesMap, nEdges, cutoffDegree));
-        return degreesMap;
+    public List<Edge> removeEdges(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
+        float threshold) {
+        List<Edge> newEdge = new ArrayList<>();
+        for (Edge edge : edges) {
+            int u = edge.getU();
+            int v = edge.getV();
+
+            if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
+                newEdge.add(edge);
+            }
+        }
+        return newEdge;
     }
 
     public int degree(int n) {
