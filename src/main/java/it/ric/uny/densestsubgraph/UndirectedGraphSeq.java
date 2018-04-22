@@ -1,25 +1,30 @@
 package it.ric.uny.densestsubgraph;
 
 import it.ric.uny.densestsubgraph.model.Edge;
-import it.ric.uny.densestsubgraph.utils.GraphParser;
+import it.ric.uny.densestsubgraph.utils.Utility;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Data
 public class UndirectedGraphSeq implements Graph {
 
-    private static final String COMMENT_CHAR = "#";
+    private static final Logger logger = LoggerFactory.getLogger(UndirectedGraphSeq.class);
+
 
     // Numero di archi
     private float nEdges;
     // Numero di nodi
     private float nNodes;
     // ArrayList di archi
-    private ArrayList<Edge> edges;
+    private List<Edge> edges;
     // Densita del sottografo più denso
     private float density;
     // Nodi sottografo più denso
@@ -27,48 +32,11 @@ public class UndirectedGraphSeq implements Graph {
     // Grado associato ad ogni nodo (u, deg(u)).
     private HashMap<Integer, Set<Integer>> degreesMap;
 
-    public UndirectedGraphSeq(String filename, float nEdges, float nNodes) {
-
-        this.edges = GraphParser.fileToEdge(filename);
-        this.degreesMap = new HashMap<>();
-        this.sTilde = new HashSet<>();
-
-        this.nEdges = nEdges;
-        this.nNodes = nNodes;
-    }
-
-    public UndirectedGraphSeq(ArrayList<Edge> edges) {
-        this.edges = edges;
+    public UndirectedGraphSeq(List<Edge> edges) {
+        this.edges = new ArrayList<>(edges);
         this.degreesMap = new HashMap<>();
 
         this.nEdges = edges.size();
-    }
-
-    public float densestSubgraphRic(float e) {
-        HashMap<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
-        float densityS = calcDensity(edges.size(), degreesMap.keySet().size());
-        Set<Integer> s = new HashSet<>(degreeS.keySet());
-        return densestSubgraphRic(edges, s, degreeS, densityS, densityS, e);
-    }
-
-    private float densestSubgraphRic(ArrayList<Edge> edges, Set<Integer> s,
-        HashMap<Integer, Set<Integer>> degreeS,
-        float densityS, float dSTilde, float e) {
-
-        if (degreeS.isEmpty()) {
-            return dSTilde;
-        }
-
-        degreeS = this.degreeSeq(edges);
-        float threshold = 2 * (1 + e) * densityS;
-        filter(edges, degreeS, threshold);
-        densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
-
-        if (densityS > dSTilde) {
-            dSTilde = densityS;
-        }
-
-        return densestSubgraphRic(edges, s, degreeS, densityS, dSTilde, e);
     }
 
     public float densestSubgraph(float e) {
@@ -78,7 +46,7 @@ public class UndirectedGraphSeq implements Graph {
         return densestSubgraph(edges, degreeS, sTilde, e);
     }
 
-    private float densestSubgraph(ArrayList<Edge> edges, Map<Integer, Set<Integer>> degreeS,
+    private float densestSubgraph(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         Set<Integer> sTilde, float e) {
 
         float densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
@@ -89,7 +57,9 @@ public class UndirectedGraphSeq implements Graph {
 
             float threshold = 2 * (1 + e) * densityS;
             // Rimuove archi con grado dei nodi <= threshold
-            filter(edges, degreeS, threshold);
+            //Utility.filter(edges, degreeS, threshold);
+            edges = this.removeEdges(edges, degreeS, threshold);
+
             // Aggiorna il grado di ogni nodo
             degreeS = this.degreeSeq(edges);
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
@@ -105,21 +75,18 @@ public class UndirectedGraphSeq implements Graph {
         return density;
     }
 
-    private void filter(ArrayList<Edge> list, Map<Integer, Set<Integer>> degreeS,
-        double threshold) {
-        int inputSize = list.size();
-        int outputSize = 0;
-
-        for (int i = 0; i < inputSize; ++i) {
-            Edge e = list.get(i);
-            int u = e.getU();
-            int v = e.getV();
+    public List<Edge> removeEdges(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
+        float threshold) {
+        List<Edge> newEdge = new ArrayList<>();
+        for (Edge edge : edges) {
+            int u = edge.getU();
+            int v = edge.getV();
 
             if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
-                list.set(outputSize++, e);
+                newEdge.add(edge);
             }
         }
-        list.subList(outputSize, inputSize).clear();
+        return newEdge;
     }
 
     /**
@@ -141,7 +108,7 @@ public class UndirectedGraphSeq implements Graph {
         return degreesMap.get(n).size();
     }
 
-    private HashMap<Integer, Set<Integer>> degreeSeq(ArrayList<Edge> edges) {
+    public HashMap<Integer, Set<Integer>> degreeSeq(List<Edge> edges) {
         HashMap<Integer, Set<Integer>> degreesMap = new HashMap<>();
         for (Edge e : edges) {
             degreesMap.putIfAbsent(e.getU(), new HashSet<>());
