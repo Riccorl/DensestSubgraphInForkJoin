@@ -48,13 +48,13 @@ public class DegreeBenchmark {
 
         //String filename = "data/dummy_graph.txt";
         //String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
-        String filename = "data/ca-GrQc.txt";                 float nEdges = 14496;     float nNodes = 5242;
+        //String filename = "data/ca-GrQc.txt";                 float nEdges = 14496;     float nNodes = 5242;
         //String filename = "data/facebook_combined.txt";       float nEdges = 88234;     float nNodes = 4039;
         //String filename = "data/ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
         //String filename = "data/ca-AstroPh.txt";                float nEdges = 198110;          float nNodes = 18772;
         //String filename = "data/roadNet-CA.txt";              float nEdge = 2766607;    float nNodes = 1965206;
         //String filename = "data/as-skitter.txt";              float nEdges = 11095298;  float nNodes = 1696415;
-        //String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
+        String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
         //String filename = "data/wiki-topcats.txt";            float nEdges = 28511807;  float nNodes = 1791489;
         //String filename = "data/soc-LiveJournal1.txt";        float nEdge = 68993773;   float nNodes = 4847571;
 
@@ -84,7 +84,7 @@ public class DegreeBenchmark {
         System.out.println("Sequential Density: " + dS);
 
         // --------------------------------- Parallel ---------------------------------------------
-        UndirectedGraph parallel = new UndirectedGraph(edges, (int) nNodes);
+        UndirectedGraph parallel = new UndirectedGraph(edges);
         long startTimeP = System.nanoTime();
         float dP = parallel.densestSubgraph(epsilon);
         long endTimeP = System.nanoTime();
@@ -108,7 +108,7 @@ public class DegreeBenchmark {
 
     @Benchmark
     public float parallelDensity() {
-        UndirectedGraph parallel = new UndirectedGraph(edges, 10);
+        UndirectedGraph parallel = new UndirectedGraph(edges);
         float d = parallel
             .densestSubgraph(epsilon);
 

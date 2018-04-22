@@ -24,9 +24,17 @@ public class ParallelDegree extends RecursiveAction {
     // Mappa (u, deg(u))
     private ConcurrentHashMap<Integer, Set<Integer>> degreeMap;
 
-    private int cutoff;
+    private int cutoff = 5000;
     private int start;
     private int end;
+
+    public ParallelDegree(List<Edge> edges, ConcurrentHashMap<Integer, Set<Integer>> degreeMap,
+        int end) {
+        this.edges = edges;
+        this.degreeMap = degreeMap;
+        this.start = 0;
+        this.end = end;
+    }
 
     public ParallelDegree(List<Edge> edges, ConcurrentHashMap<Integer, Set<Integer>> degreeMap,
         int end, int cutoff) {

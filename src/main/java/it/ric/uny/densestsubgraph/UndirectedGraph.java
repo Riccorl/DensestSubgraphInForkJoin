@@ -21,7 +21,9 @@ import lombok.Data;
 public class UndirectedGraph {
 
     private static ForkJoinPool fjPool = ForkJoinPool.commonPool();
-
+    // CUTOFF
+    int cutoffDegree = 5000;
+    int cutoffRemove = 1000000;
     // Numero di archi
     private float nEdges;
     // Numero di nodi
@@ -36,10 +38,6 @@ public class UndirectedGraph {
     // Mappa concorrente dei gradi
     // Grado associato ad ogni nodo (u, deg(u)).
     private ConcurrentHashMap<Integer, Set<Integer>> degreesMap;
-
-    // CUTOFF
-    int cutoffDegree = 5000;
-    int cutoffRemove = 5000;
 
     public UndirectedGraph(List<Edge> edges) {
         this.edges = new ArrayList<>(edges);
@@ -64,17 +62,14 @@ public class UndirectedGraph {
         while (!degreeS.isEmpty()) {
 
             float threshold = 2 * (1 + e) * densityS;
-
-            if (edges.size() > 1000) {
-                edges = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold, cutoffRemove));
-
-            } else {
-                edges = this.removeEdges(edges, degreeS, threshold);
-            }
-
+            // Rimuove gli archi tra nodi che hanno grado <= 2*(1 + e) * d(S)
+            edges = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold));
+            // Ricalcola grado di ogni nodo, fork/join
             degreeS = this.degreeConc(edges, edges.size());
-
+            // Ricalcola densità attuale
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
+            // Se la nuova densità è maggiore della massima fino ad ora ->
+            //      aggiorna la densità massima
             if (densityS > densitySTilde) {
                 densitySTilde = densityS;
             }

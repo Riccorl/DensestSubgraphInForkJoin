@@ -16,7 +16,16 @@ public class ParallelRemove extends RecursiveTask<List<Edge>> {
     private int start;
     private int end;
     private float threshold;
-    private int cutoff;
+    private int cutoff = 5000;
+
+    public ParallelRemove(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
+        float threshold) {
+
+        this.edges = edges;
+        this.end = edges.size();
+        this.degreeS = degreeS;
+        this.threshold = threshold;
+    }
 
     public ParallelRemove(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         float threshold, int cutoff) {
@@ -44,7 +53,7 @@ public class ParallelRemove extends RecursiveTask<List<Edge>> {
 
         // Sequential
         if (end - start < cutoff) {
-            List<Edge> newEdge = new ArrayList<>();
+            List<Edge> newEdge = new ArrayList<>(end - start);
             for (int i = start; i < end; i++) {
                 Edge edge = edges.get(i);
                 int u = edge.getU();

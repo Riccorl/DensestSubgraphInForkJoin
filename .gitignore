@@ -5,6 +5,8 @@
 # User-specific stuff:
 .idea/**/tasks.xml
 .idea/dictionaries
+data
+lib
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
@@ -80,3 +82,5 @@ buildNumber.properties
 data/.vscode/
 src/main/resources/
 src/test/
+src/main/main.iml
+src/main/java/META-INF/MANIFEST.MF

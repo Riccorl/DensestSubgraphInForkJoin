@@ -56,7 +56,7 @@ public class UndirectedGraphSeq implements Graph {
         while (!degreeS.isEmpty()) {
 
             float threshold = 2 * (1 + e) * densityS;
-            // Rimuove archi con grado dei nodi <= threshold
+            // Rimuove archi con grado dei nodi <= 2*(1 + e) * d(S)
             //Utility.filter(edges, degreeS, threshold);
             edges = this.removeEdges(edges, degreeS, threshold);
 
