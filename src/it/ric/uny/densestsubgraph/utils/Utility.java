@@ -4,7 +4,8 @@ import static java.nio.file.Files.newBufferedReader;
 
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
-import it.ric.uny.densestsubgraph.model.Edge;
+import it.ric.uny.densestsubgraph.Model.Edge;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +24,7 @@ public class Utility {
     private static final String COMMENT_CHAR = "#";
 
     public static void filter(List<Edge> list, Map<Integer, Set<Integer>> degreeS,
-        double threshold) {
+                              double threshold) {
         int inputSize = list.size();
         int outputSize = 0;
 
@@ -57,7 +58,7 @@ public class Utility {
                     int u = Integer.parseInt(matcher.group(1));
                     int v = Integer.parseInt(matcher.group(2));
 
-                    edges.add(new it.ric.uny.densestsubgraph.model.Edge(u, v));
+                    edges.add(new Edge(u, v));
                 }
             }
         } catch (IOException e) {

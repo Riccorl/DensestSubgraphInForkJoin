@@ -1,33 +1,25 @@
 package it.ric.uny.densestsubgraph;
 
-import it.ric.uny.densestsubgraph.model.Edge;
+import it.ric.uny.densestsubgraph.Model.Edge;
+import it.ric.uny.densestsubgraph.UndirectedGraph;
+import it.ric.uny.densestsubgraph.UndirectedGraphSeq;
 import it.ric.uny.densestsubgraph.utils.Utility;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @Fork(1)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-@BenchmarkMode(Mode.SampleTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@BenchmarkMode(Mode.All)
 public class DegreeBenchmark {
 
-    private static final Logger logger = LoggerFactory.getLogger(DegreeBenchmark.class);
+    //private static final Logger logger = LoggerFactory.getLogger(DegreeBenchmark.class);
     private List<Edge> edges;
 
     private static float epsilon;
@@ -50,11 +42,11 @@ public class DegreeBenchmark {
         //String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
         //String filename = "data/ca-GrQc.txt";                 float nEdges = 14496;     float nNodes = 5242;
         //String filename = "data/facebook_combined.txt";       float nEdges = 88234;     float nNodes = 4039;
-        //String filename = "data/ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
-        //String filename = "data/ca-AstroPh.txt";                float nEdges = 198110;          float nNodes = 18772;
+        String filename = "data/ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
+        //String filename = "data/ca-AstroPh.txt";              float nEdges = 198110;    float nNodes = 18772;
         //String filename = "data/roadNet-CA.txt";              float nEdge = 2766607;    float nNodes = 1965206;
         //String filename = "data/as-skitter.txt";              float nEdges = 11095298;  float nNodes = 1696415;
-        String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
+        //String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
         //String filename = "data/wiki-topcats.txt";            float nEdges = 28511807;  float nNodes = 1791489;
         //String filename = "data/soc-LiveJournal1.txt";        float nEdge = 68993773;   float nNodes = 4847571;
 
@@ -94,16 +86,17 @@ public class DegreeBenchmark {
 
         System.out.println("Speedup: " + (timeS / time));
 
-//        Options opts = new OptionsBuilder()
-//            .include(DegreeBenchmark.class.getSimpleName())
-//            .warmupIterations(5)
-//            .measurementIterations(3)
-//            .forks(1)
-//            .mode(Mode.AverageTime)
-//            .timeUnit(TimeUnit.MILLISECONDS)
-//            .build();
-//
-//        new Runner(opts).run();
+        Options opts = new OptionsBuilder()
+            .include(DegreeBenchmark.class.getSimpleName())
+            .warmupIterations(2)
+            .measurementIterations(5)
+            .forks(3)
+            .mode(Mode.AverageTime)
+            .measurementBatchSize(1)
+            .timeUnit(TimeUnit.MILLISECONDS)
+            .build();
+
+        new Runner(opts).run();
     }
 
     @Benchmark
@@ -148,16 +141,16 @@ public class DegreeBenchmark {
         //String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
         //String filename = "data/ca-GrQc.txt";                 float nEdges = 14496;     float nNodes = 5242;
         //String filename = "data/facebook_combined.txt";       float nEdges = 88234;     float nNodes = 4039;
-        //String filename = "data/ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
+        String filename = "data/ca-CondMat.txt";              float nEdges = 93497;     float nNodes = 23133;
         //String filename = "data/ca-AstroPh.txt";                float nEdges = 198110;          float nNodes = 18772;
         //String filename = "data/roadNet-CA.txt";              float nEdge = 2766607;    float nNodes = 1965206;
         //String filename = "data/as-skitter.txt";              float nEdges = 11095298;  float nNodes = 1696415;
-        String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
+        //String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
         //String filename = "data/wiki-topcats.txt";            float nEdges = 28511807;  float nNodes = 1791489;
         //String filename = "data/soc-LiveJournal1.txt";        float nEdge = 68993773;   float nNodes = 4847571;
 
-        logger.debug("Filename: " + filename);
+        //logger.debug("Filename: " + filename);
         edges = Utility.fileToEdge(filename);
-        epsilon = (float) 1.1;
+        epsilon = (float) 1;
     }
 }

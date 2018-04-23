@@ -1,22 +1,20 @@
 package it.ric.uny.densestsubgraph;
 
-import it.ric.uny.densestsubgraph.model.Edge;
-import it.ric.uny.densestsubgraph.utils.Utility;
+import it.ric.uny.densestsubgraph.Model.Edge;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Data
 public class UndirectedGraphSeq implements Graph {
 
-    private static final Logger logger = LoggerFactory.getLogger(UndirectedGraphSeq.class);
+    //private static final Logger logger = LoggerFactory.getLogger(UndirectedGraphSeq.class);
 
 
     // Numero di archi
@@ -59,7 +57,6 @@ public class UndirectedGraphSeq implements Graph {
             // Rimuove archi con grado dei nodi <= 2*(1 + e) * d(S)
             //Utility.filter(edges, degreeS, threshold);
             edges = this.removeEdges(edges, degreeS, threshold);
-
             // Aggiorna il grado di ogni nodo
             degreeS = this.degreeSeq(edges);
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());

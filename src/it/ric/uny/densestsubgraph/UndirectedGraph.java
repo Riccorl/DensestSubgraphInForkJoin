@@ -1,6 +1,6 @@
 package it.ric.uny.densestsubgraph;
 
-import it.ric.uny.densestsubgraph.model.Edge;
+import it.ric.uny.densestsubgraph.Model.Edge;
 import it.ric.uny.densestsubgraph.parallel.ParallelDegree;
 import it.ric.uny.densestsubgraph.parallel.ParallelRemove;
 import java.util.ArrayList;
@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
+
+import it.ric.uny.densestsubgraph.utils.Utility;
 import lombok.Data;
 
 // Modifica con ConcurrentHashMap
@@ -63,9 +65,16 @@ public class UndirectedGraph {
 
             float threshold = 2 * (1 + e) * densityS;
             // Rimuove gli archi tra nodi che hanno grado <= 2*(1 + e) * d(S)
-            edges = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold));
+            if (edges.size()  < nEdges / 10) {
+                edges = this.removeEdges(edges, degreeS, threshold);
+                //Utility.filter(edges, degreeS, threshold);
+                degreeS = this.degreeSeq(edges);
+            } else {
+                edges = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold));
+                degreeS = this.degreeConc(edges, edges.size());
+            }
             // Ricalcola grado di ogni nodo, fork/join
-            degreeS = this.degreeConc(edges, edges.size());
+            //degreeS = this.degreeConc(edges, edges.size());
             // Ricalcola densità attuale
             densityS = calcDensity(edges.size() / 2, degreeS.keySet().size());
             // Se la nuova densità è maggiore della massima fino ad ora ->
@@ -101,7 +110,7 @@ public class UndirectedGraph {
 
     public List<Edge> removeEdges(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         float threshold) {
-        List<Edge> newEdge = new ArrayList<>();
+        List<Edge> newEdge = new ArrayList<>(edges.size());
         for (Edge edge : edges) {
             int u = edge.getU();
             int v = edge.getV();

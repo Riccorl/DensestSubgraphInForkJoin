@@ -1,4 +1,4 @@
-package it.ric.uny.densestsubgraph.model;
+package it.ric.uny.densestsubgraph.Model;
 
 import lombok.Data;
 

@@ -1,11 +1,15 @@
 package it.ric.uny.densestsubgraph.parallel;
 
-import it.ric.uny.densestsubgraph.model.Edge;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
+import it.ric.uny.densestsubgraph.Model.Edge;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
+import java.util.stream.Collectors;
 
 public class ParallelRemove extends RecursiveTask<List<Edge>> {
 
@@ -16,7 +20,7 @@ public class ParallelRemove extends RecursiveTask<List<Edge>> {
     private int start;
     private int end;
     private float threshold;
-    private int cutoff = 5000;
+    private int cutoff = 10000;
 
     public ParallelRemove(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         float threshold) {
@@ -75,8 +79,15 @@ public class ParallelRemove extends RecursiveTask<List<Edge>> {
         left.fork();
         List<Edge> rightArray = right.compute();
         List<Edge> leftArray = left.join();
-        leftArray.addAll(rightArray);
+        /*Iterable<Edge> combinedIterables = Iterables.unmodifiableIterable(
+                Iterables.concat(leftArray, rightArray));
 
-        return leftArray;
+        return Lists.newArrayList(combinedIterables);*/
+        List<Edge> returnList = new ArrayList<>(end-start);
+//        returnList = Streams.concat(leftArray.stream(), rightArray.stream()).collect(Collectors.toList());
+//        return returnList;
+        returnList.addAll(rightArray);
+        returnList.addAll(leftArray);
+        return returnList;
     }
 }
