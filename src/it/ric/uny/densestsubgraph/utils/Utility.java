@@ -4,10 +4,10 @@ import static java.nio.file.Files.newBufferedReader;
 
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
-import it.ric.uny.densestsubgraph.Model.Edge;
-
+import it.ric.uny.densestsubgraph.model.Edge;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -24,7 +24,7 @@ public class Utility {
     private static final String COMMENT_CHAR = "#";
 
     public static void filter(List<Edge> list, Map<Integer, Set<Integer>> degreeS,
-                              double threshold) {
+        double threshold) {
         int inputSize = list.size();
         int outputSize = 0;
 
@@ -38,6 +38,16 @@ public class Utility {
             }
         }
         list.subList(outputSize, inputSize).clear();
+    }
+
+    public static double round(double x, int numberofDecimals) {
+        if (x > 0) {
+            return new BigDecimal(String.valueOf(x))
+                .setScale(numberofDecimals, BigDecimal.ROUND_FLOOR).doubleValue();
+        } else {
+            return new BigDecimal(String.valueOf(x))
+                .setScale(numberofDecimals, BigDecimal.ROUND_CEILING).doubleValue();
+        }
     }
 
     /**

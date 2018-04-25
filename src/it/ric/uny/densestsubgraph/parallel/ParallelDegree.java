@@ -1,6 +1,6 @@
 package it.ric.uny.densestsubgraph.parallel;
 
-import it.ric.uny.densestsubgraph.Model.Edge;
+import it.ric.uny.densestsubgraph.model.Edge;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
