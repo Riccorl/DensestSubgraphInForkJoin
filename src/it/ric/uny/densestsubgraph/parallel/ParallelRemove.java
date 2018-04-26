@@ -1,12 +1,15 @@
 package it.ric.uny.densestsubgraph.parallel;
 
+import com.google.common.collect.Streams;
 import it.ric.uny.densestsubgraph.model.Edge;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
+import java.util.stream.Collectors;
 
-public class ParallelRemove extends RecursiveTask<Integer> {
+public class ParallelRemove extends RecursiveTask<List<Edge>> {
 
     //private static final int CUTOFF = 50000;
 
@@ -15,7 +18,7 @@ public class ParallelRemove extends RecursiveTask<Integer> {
     private int start;
     private int end;
     private double threshold;
-    private int cutoff = 70000;
+    private int cutoff = 40000;
 
     public ParallelRemove(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         double threshold) {
@@ -48,23 +51,25 @@ public class ParallelRemove extends RecursiveTask<Integer> {
     }
 
     @Override
-    protected Integer compute() {
+    protected List<Edge> compute() {
 
         // Sequential
         if (end - start < cutoff) {
-            int counter = 0;
+//            int counter = 0;
+            List<Edge> newEdges = new ArrayList<>(end - start);
             for (int i = start; i < end; i++) {
-                if (edges.get(i) == null) continue;
+//                if (edges.get(i) == null) continue;
                 Edge edge = edges.get(i);
                 int u = edge.getU();
                 int v = edge.getV();
 
-                if (degreeS.get(u).size() <= threshold || degreeS.get(v).size() <= threshold) {
-                    edges.set(i, null);
-                    counter++;
+                if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
+//                    edges.set(i, null);
+//                    counter++;
+                    newEdges.add(edge);
                 }
             }
-            return counter;
+            return newEdges;
         }
 
         // Parallel
@@ -74,12 +79,14 @@ public class ParallelRemove extends RecursiveTask<Integer> {
         ParallelRemove right = new ParallelRemove(edges, degreeS, mid, end, threshold, cutoff);
 
         left.fork();
-        int r = right.compute();
-        int l = left.join();
-        return r + l;
+//        int r = right.compute();
+//        int l = left.join();
+        List<Edge> rightArray = right.compute();
+        List<Edge> leftArray = left.join();
+//        return r + l;
 //        return returnList;
 //        returnList.addAll(rightArray);
 //        returnList.addAll(leftArray);
-//        return Streams.concat(leftArray.stream(), rightArray.stream()).collect(Collectors.toList());
+        return Streams.concat(leftArray.stream(), rightArray.stream()).collect(Collectors.toList());
     }
 }

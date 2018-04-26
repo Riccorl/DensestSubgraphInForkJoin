@@ -1,7 +1,5 @@
 package it.ric.uny.densestsubgraph;
 
-import static it.ric.uny.densestsubgraph.utils.Utility.filter;
-
 import it.ric.uny.densestsubgraph.model.Edge;
 import it.ric.uny.densestsubgraph.utils.Utility;
 import java.util.ArrayList;
@@ -39,13 +37,13 @@ public class UndirectedGraphSeq implements Graph {
     }
 
     public double densestSubgraphRic(double e) {
-        HashMap<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
+        Map<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
         double dS = Utility.round(calcDensity(edges.size() / 2 , degreeS.size()), 2);
         return densestSubgraphRic(edges, degreeS, dS, dS, e);
     }
 
     private double densestSubgraphRic(List<Edge> edges,
-        HashMap<Integer, Set<Integer>> degreeS,
+        Map<Integer, Set<Integer>> degreeS,
         double dS, double dSTilde, double e) {
 
         if (degreeS.isEmpty()) {
@@ -82,13 +80,12 @@ public class UndirectedGraphSeq implements Graph {
         while (!degreeS.keySet().isEmpty()) {
 
             double threshold = 2 * (1 + e) * dS;
-            // Rimuove archi con grado dei nodi <= 2*(1 + e) * d(S)
+            // Rimuove archi con grado dei nodi <= 2 * (1 + e) * d(S)
             //filter(edges, degreeS, threshold);
             //edges = this.removeEdgesSlower(edges, degreeS, threshold);
             edges = this.removeEdges(edges, degreeS, threshold);
             // Aggiorna il grado di ogni nodo
             degreeS = this.degreeSeq(edges);
-            if (edges.isEmpty()) break;
             dS = calcDensity(edges.size() / 2, degreeS.keySet().size());
 
             if (dS > dSTilde) {
@@ -149,8 +146,8 @@ public class UndirectedGraphSeq implements Graph {
         return degreesMap.get(n).size();
     }
 
-    public HashMap<Integer, Set<Integer>> degreeSeq(List<Edge> edges) {
-        HashMap<Integer, Set<Integer>> degreesMap = new HashMap<>();
+    public Map<Integer, Set<Integer>> degreeSeq(List<Edge> edges) {
+        Map<Integer, Set<Integer>> degreesMap = new HashMap<>();
         for (Edge e : edges) {
             degreesMap.putIfAbsent(e.getU(), new HashSet<>());
             degreesMap.putIfAbsent(e.getV(), new HashSet<>());

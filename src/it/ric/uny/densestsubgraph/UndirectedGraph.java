@@ -43,7 +43,7 @@ public class UndirectedGraph {
     public UndirectedGraph(List<Edge> edges) {
         this.edges = new ArrayList<>(edges);
         this.nEdges = edges.size();
-        this.degreesMap = new ConcurrentHashMap<>((int) nNodes, 0.75f, 64);
+        this.degreesMap = new ConcurrentHashMap<>((int) nNodes, 0.75f, 256);
     }
 
     public double densestSubgraph(double e) {
@@ -77,7 +77,7 @@ public class UndirectedGraph {
 ////                edges = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold));
 ////                degreeS = this.degreeConc(edges, edges.size());
 //            }
-            counter += fjPool.invoke(new ParallelRemove(edges, degreeS, threshold));
+            edges = fjPool.invoke(new ParallelRemove(edges, degreeS, threshold));
             // Ricalcola grado di ogni nodo, fork/join
             degreeS = this.degreeConc(edges, edges.size());
 
@@ -103,7 +103,7 @@ public class UndirectedGraph {
 
     public ConcurrentHashMap<Integer, Set<Integer>> degreeConc(List<Edge> edges, int nEdges) {
         ConcurrentHashMap<Integer, Set<Integer>> degreesMap =
-            new ConcurrentHashMap<>((int) nNodes, 0.75f, 64);
+            new ConcurrentHashMap<>((int) nNodes, 0.75f, 256);
         fjPool.invoke(new ParallelDegree(edges, degreesMap, nEdges, cutoffDegree));
         return degreesMap;
     }
