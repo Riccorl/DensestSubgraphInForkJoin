@@ -1,7 +1,6 @@
 package it.ric.uny.densestsubgraph;
 
 import it.ric.uny.densestsubgraph.model.Edge;
-import it.ric.uny.densestsubgraph.utils.Utility;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,85 +31,38 @@ public class UndirectedGraphSeq implements Graph {
     public UndirectedGraphSeq(List<Edge> edges) {
         this.edges = new ArrayList<>(edges);
         this.degreesMap = new HashMap<>();
-
         this.nEdges = edges.size();
-    }
-
-    public double densestSubgraphRic(double e) {
-        Map<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
-        double dS = Utility.round(calcDensity(edges.size() / 2 , degreeS.size()), 2);
-        return densestSubgraphRic(edges, degreeS, dS, dS, e);
-    }
-
-    private double densestSubgraphRic(List<Edge> edges,
-        Map<Integer, Set<Integer>> degreeS,
-        double dS, double dSTilde, double e) {
-
-        if (degreeS.isEmpty()) {
-            return dSTilde;
-        }
-
-        degreeS = this.degreeSeq(edges);
-        if (edges.isEmpty()) return dSTilde;
-        double threshold = Utility.round(2 * (1 + e) * dS, 2);
-        Utility.filter(edges, degreeS, threshold);
-        dS = Utility.round(calcDensity(edges.size() / 2 , degreeS.size()), 2);
-
-        if (dS > dSTilde) {
-            dSTilde = dS;
-        }
-
-        return densestSubgraphRic(edges, degreeS, dS, dSTilde, e);
     }
 
     public double densestSubgraph(double e) {
         Map<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
-        Set<Integer> sTilde = new HashSet<>(degreeS.keySet());
-
-        return densestSubgraph(edges, degreeS, sTilde, e);
+        Set<Integer> s = new HashSet<>(degreeS.keySet());
+        return densestSubgraph(edges, degreeS, s, e);
     }
 
     private double densestSubgraph(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
-        Set<Integer> sTilde, double e) {
+        Set<Integer> s, double e) {
 
-        double dS = calcDensity(edges.size() / 2, degreeS.keySet().size());
+        double dS = calcDensity(edges.size() / 2.0, degreeS.size());
         double dSTilde = dS;
 
         // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
-        while (!degreeS.keySet().isEmpty()) {
+        while (!degreeS.isEmpty()) {
 
-            double threshold = 2 * (1 + e) * dS;
+            double threshold = 2.0 * (1.0 + e) * dS;
             // Rimuove archi con grado dei nodi <= 2 * (1 + e) * d(S)
-            //filter(edges, degreeS, threshold);
-            //edges = this.removeEdgesSlower(edges, degreeS, threshold);
             edges = this.removeEdges(edges, degreeS, threshold);
             // Aggiorna il grado di ogni nodo
             degreeS = this.degreeSeq(edges);
-            dS = calcDensity(edges.size() / 2, degreeS.keySet().size());
-
+            // Ricalcola la densità
+            dS = calcDensity(edges.size() / 2.0, degreeS.size());
             if (dS > dSTilde) {
-                sTilde = new HashSet<>(degreeS.keySet());
                 dSTilde = dS;
             }
         }
 
         this.density = dSTilde;
-        this.sTilde = sTilde;
         return density;
-    }
-
-    public List<Edge> removeEdgesSlower(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
-        double threshold) {
-        List<Edge> newEdge = new ArrayList<>(edges);
-        for (Edge edge : edges) {
-            int u = edge.getU();
-            int v = edge.getV();
-
-            if (degreeS.get(u).size() <= threshold || degreeS.get(v).size() <= threshold) {
-                newEdge.remove(edge);
-            }
-        }
-        return newEdge;
     }
 
     public List<Edge> removeEdges(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
@@ -125,6 +77,20 @@ public class UndirectedGraphSeq implements Graph {
             }
         }
         return newEdge;
+    }
+
+    public List<Edge> removeEdgesSlower(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
+        double threshold) {
+        List<Edge> newEdge = new ArrayList<>(edges);
+        for (Edge edge : newEdge) {
+            int u = edge.getU();
+            int v = edge.getV();
+
+            if (degreeS.get(u).size() <= threshold || degreeS.get(v).size() <= threshold) {
+                edges.remove(edge);
+            }
+        }
+        return edges;
     }
 
     /**

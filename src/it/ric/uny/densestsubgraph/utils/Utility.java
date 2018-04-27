@@ -55,6 +55,36 @@ public class Utility {
      *
      * @param filename file to read
      */
+    public static List<Edge> fileToGraph(String filename) {
+        List<Edge> edges = new ArrayList<>();
+        try (BufferedReader br = newBufferedReader(Paths.get(filename),
+            StandardCharsets.UTF_8)) {
+            for (String line = null; (line = br.readLine()) != null; ) {
+
+                if (line.startsWith(COMMENT_CHAR)) {
+                    continue;
+                }
+
+                String[] row = line.split("\\s+");
+
+                int u = Integer.parseInt(row[0]);
+                int v = Integer.parseInt(row[1]);
+
+                edges.add(new Edge(u, v));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Lettura ok");
+        return edges;
+    }
+
+    /**
+     * Reads from file and generates data structure for the graph
+     *
+     * @param filename file to read
+     */
     public static List<Edge> fileToEdge(String filename) {
 
         Pattern pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
@@ -86,7 +116,7 @@ public class Utility {
                 if (x.startsWith(COMMENT_CHAR)) {
                     return;
                 }
-                String[] row = x.split("[\t ]");
+                String[] row = x.split("\\s+");
                 graph.putEdge(Integer.parseInt(row[0]), Integer.parseInt(row[1]));
             });
             return graph;
