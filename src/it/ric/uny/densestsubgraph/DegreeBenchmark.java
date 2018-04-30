@@ -127,7 +127,7 @@ public class DegreeBenchmark {
 //        UndirectedGraph parallel = new UndirectedGraph(edges);
 //        parallel.setCutoffDegree(1000);
 //        return parallel
-//            .degreeConc(parallel.getEdges(), (int) parallel.getNEdges() / 2);
+//            .nodesDegree(parallel.getEdges(), (int) parallel.getNEdges() / 2);
 //    }
 //
 //    @Benchmark
@@ -142,22 +142,22 @@ public class DegreeBenchmark {
         //    Local
         //String filename = "data/dummy_graph.txt";
         //String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
-        String filename = "data/ca-GrQc.txt";
+//        String filename = "data/ca-GrQc.txt";
         //String filename = "data/facebook_combined.txt";
 //        String filename = "data/ca-CondMat.txt";
 //        String filename = "data/cit-HepTh.txt";
 //        String filename = "data/ca-HepPh.txt";
 //        String filename = "data/email-Enron.txt";
-        //String filename = "data/ca-AstroPh.txt";
-        //String filename = "data/roadNet-CA.txt";
-        //String filename = "data/as-skitter.txt";
+        String filename = "data/ca-AstroPh.txt";
+//        String filename = "data/roadNet-CA.txt";
+//        String filename = "data/as-skitter.txt";
         //String filename = "data/cit-Patents.txt";
 //        String filename = "data/wiki-topcats.txt";
         //String filename = "com-lj.ungraph.txt";
         //String filename = "com-orkut.ungraph.txt";
         //logger.debug("Filename: " + filename);
         edges = Utility.fileToEdge(filename);
-        epsilon = 1;
+        epsilon = 0d;
         System.out.println(epsilon);
     }
 }

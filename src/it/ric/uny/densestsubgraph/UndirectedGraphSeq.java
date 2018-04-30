@@ -37,13 +37,12 @@ public class UndirectedGraphSeq implements Graph {
     public double densestSubgraph(double e) {
         Map<Integer, Set<Integer>> degreeS = this.degreeSeq(edges);
         Set<Integer> s = new HashSet<>(degreeS.keySet());
-        return densestSubgraph(edges, degreeS, s, e);
+        return densestSubgraph(edges, degreeS, e);
     }
 
-    private double densestSubgraph(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
-        Set<Integer> s, double e) {
+    private double densestSubgraph(List<Edge> edges, Map<Integer, Set<Integer>> degreeS, double e) {
 
-        double dS = calcDensity(edges.size() / 2.0, degreeS.size());
+        double dS = calcDensity(edges.size(), degreeS.size());
         double dSTilde = dS;
 
         // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
@@ -55,7 +54,7 @@ public class UndirectedGraphSeq implements Graph {
             // Aggiorna il grado di ogni nodo
             degreeS = this.degreeSeq(edges);
             // Ricalcola la densità
-            dS = calcDensity(edges.size() / 2.0, degreeS.size());
+            dS = calcDensity(edges.size(), degreeS.size());
             if (dS > dSTilde) {
                 dSTilde = dS;
             }

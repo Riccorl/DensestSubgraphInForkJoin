@@ -1,13 +1,11 @@
 package it.ric.uny.densestsubgraph.parallel;
 
-import com.google.common.collect.Streams;
 import it.ric.uny.densestsubgraph.model.Edge;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
-import java.util.stream.Collectors;
 
 public class ParallelRemove extends RecursiveTask<List<Edge>> {
 

@@ -43,40 +43,50 @@ public class UndirectedGraph {
         this(edges, 1000000);
     }
 
+    /**
+     * Wrapper per il metodo del calcolo del sottografo più denso
+     * @param e     epsilon
+     * @return      la densità del sottografo più denso
+     */
     public double densestSubgraph(double e) {
-        degreesMap = this.degreeConc(edges);
-        double densityS = calcDensity(edges.size() / 2.0, degreesMap.keySet().size());
+        degreesMap = this.nodesDegree(edges);
+        double dS = calcDensity(edges.size(), degreesMap.size());
 
-        return densestSubgraph(edges, degreesMap, densityS, densityS, e);
+        return densestSubgraph(edges, degreesMap, dS, e);
     }
 
 
     private double densestSubgraph(List<Edge> edges,
-        ConcurrentHashMap<Integer, Set<Integer>> degreeS, double densityS,
-        double densitySTilde, double e) {
-
+        ConcurrentHashMap<Integer, Set<Integer>> degreeS, double dS, double e) {
+        // Densità attuale
+        double dSTilde = dS;
         // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
         while (!degreeS.isEmpty()) {
 
-            double threshold = 2.0 * (1.0 + e) * densityS;
+            double threshold = 2.0 * (1.0 + e) * dS;
             // Rimuove gli archi tra nodi che hanno grado <= 2*(1 + e) * d(S)
-            edges = ForkJoinPool.commonPool().invoke(new ParallelRemove(edges, degreeS, threshold));
+            edges = this.removeEdges(edges, degreeS, threshold);
             // Ricalcola grado di ogni nodo, fork/join
-            degreeS = this.degreeConc(edges);
+            degreeS = this.nodesDegree(edges);
             // Ricalcola densità attuale
-            densityS = calcDensity(edges.size() / 2.0, degreeS.keySet().size());
+            dS = calcDensity(edges.size(), degreeS.size());
             // Se la nuova densità è maggiore della massima fino ad ora ->
             //      aggiorna la densità massima
-            if (densityS > densitySTilde) {
-                densitySTilde = densityS;
+            if (dS > dSTilde) {
+                dSTilde = dS;
             }
         }
 
-        this.density = densitySTilde;
+        this.density = dSTilde;
         return density;
     }
 
-    public ConcurrentHashMap<Integer, Set<Integer>> degreeConc(List<Edge> edges) {
+    private List<Edge> removeEdges(List<Edge> edges,
+        ConcurrentHashMap<Integer, Set<Integer>> degreeS, double threshold) {
+        return ForkJoinPool.commonPool().invoke(new ParallelRemove(edges, degreeS, threshold));
+    }
+
+    private ConcurrentHashMap<Integer, Set<Integer>> nodesDegree(List<Edge> edges) {
 
         ConcurrentHashMap<Integer, Set<Integer>> degreesMap =
             new ConcurrentHashMap<>((int) nNodes, 0.75f, 256);
