@@ -14,7 +14,7 @@ import java.util.concurrent.RecursiveAction;
 
 public class ParallelDegree extends RecursiveAction {
 
-    private static final int CUTOFF = 40000;
+    private static final int CUTOFF = 5000;
 
     // ArrayList contenente gli archi
     private List<Edge> edges;
@@ -65,8 +65,7 @@ public class ParallelDegree extends RecursiveAction {
 
         ParallelDegree left = new ParallelDegree(edges, degreeMap, start, mid);
         ParallelDegree right = new ParallelDegree(edges, degreeMap, mid, end);
-//        invokeAll(new ParallelDegree(edges, degreeMap, start, mid),
-//            new ParallelDegree(edges, degreeMap, mid, end));
+
         left.fork();
         right.compute();
         left.join();

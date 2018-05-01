@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,7 +90,8 @@ public class Utility {
 
         Pattern pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
 
-        List<Edge> edges = new ArrayList<>();
+        Set<Edge> edgeSet = new HashSet<>();
+        int c = 0;
         try (BufferedReader br = newBufferedReader(Paths.get(filename), StandardCharsets.UTF_8)) {
             for (String line = null; (line = br.readLine()) != null; ) {
 
@@ -98,14 +100,14 @@ public class Utility {
                     int u = Integer.parseInt(matcher.group(1));
                     int v = Integer.parseInt(matcher.group(2));
 
-                    edges.add(new Edge(u, v));
+                    Edge e = new Edge(u,v);
+                    edgeSet.add(e);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return edges;
+        return new ArrayList<>(edgeSet);
     }
 
     public static MutableGraph<Integer> parseGuava(String filename) throws IOException {

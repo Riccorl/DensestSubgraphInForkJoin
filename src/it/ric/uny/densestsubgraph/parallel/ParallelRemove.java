@@ -9,15 +9,15 @@ import java.util.concurrent.RecursiveTask;
 
 public class ParallelRemove extends RecursiveTask<List<Edge>> {
 
-    private static final int CUTOFF = 40000;
+    private static final int CUTOFF = 4000;
 
     private List<Edge> edges;
-    private Map<Integer, Set<Integer>> degreeS;
+    private Map<Integer, Integer> degreeS;
     private int start;
     private int end;
     private double threshold;
 
-    public ParallelRemove(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
+    public ParallelRemove(List<Edge> edges, Map<Integer, Integer> degreeS,
         double threshold) {
 
         this.edges = edges;
@@ -26,7 +26,7 @@ public class ParallelRemove extends RecursiveTask<List<Edge>> {
         this.threshold = threshold;
     }
 
-    private ParallelRemove(List<Edge> edges, Map<Integer, Set<Integer>> degreeS, int start,
+    private ParallelRemove(List<Edge> edges, Map<Integer, Integer> degreeS, int start,
         int end, double threshold) {
 
         this.edges = edges;
@@ -47,7 +47,7 @@ public class ParallelRemove extends RecursiveTask<List<Edge>> {
                 int u = edge.getU();
                 int v = edge.getV();
 
-                if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
+                if (degreeS.get(u) > threshold && degreeS.get(v) > threshold) {
                     newEdges.add(edge);
                 }
             }

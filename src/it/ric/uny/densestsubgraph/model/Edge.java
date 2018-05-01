@@ -1,5 +1,6 @@
 package it.ric.uny.densestsubgraph.model;
 
+import com.google.common.base.Objects;
 import lombok.Data;
 
 @Data
@@ -29,26 +30,16 @@ public class Edge {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        if (!super.equals(o)) {
-            return false;
-        }
 
         Edge edge = (Edge) o;
-
-        if (u != edge.u) {
-            return false;
-        }
-        return v == edge.v;
+        return ((u == edge.getU()) && (v == edge.getV()))
+            || ((v == edge.getU()) && (u == edge.getV()));
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + u;
-        result = 31 * result + v;
+        int result = 17;
+        result = 31 * result + (u*v);
         return result;
     }
-
-
-
 }

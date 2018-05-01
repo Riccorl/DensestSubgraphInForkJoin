@@ -5,6 +5,8 @@ import it.ric.uny.densestsubgraph.model.Edge;
 import it.ric.uny.densestsubgraph.utils.Utility;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -28,7 +30,7 @@ public class DegreeBenchmark {
 
     public static void main(String[] args) throws RunnerException, IOException {
 
-        double epsilon = (double) 0.1;
+        double epsilon = (double) 0;
 
 //        String filename = "data/dummy_graph.txt";
 //        String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
@@ -41,21 +43,20 @@ public class DegreeBenchmark {
 //        String filename = "data/ca-AstroPh.txt";              float nEdges = 198110;    float nNodes = 18772;
 //        String filename = "data/roadNet-CA.txt";              float nEdge = 2766607;    float nNodes = 1965206;
 //        String filename = "data/as-skitter.txt";              float nEdges = 11095298;  float nNodes = 1696415;
-////        String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
-////        String filename = "data/wiki-topcats.txt";            float nEdges = 28511807;  float nNodes = 1791489;
-////        String filename = "data/soc-LiveJournal1.txt";        float nEdge = 68993773;   float nNodes = 4847571;
+//        String filename = "data/cit-Patents.txt";             float nEdges = 16518948;  float nNodes = 3774768;
+//        String filename = "data/wiki-topcats.txt";            float nEdges = 28511807;  float nNodes = 1791489;
+//        String filename = "data/soc-LiveJournal1.txt";        float nEdge = 68993773;   float nNodes = 4847571;
 //
 //        // --------------------------------- Reading ----------------------------------------------
 //        System.out.println();
 //        System.out.println("Filename: " + filename);
-        //System.out.println("Numero di nodi: " + (int) nNodes);
-        //System.out.println("Numero di archi: " + (int) nEdges);
 //        System.out.println("Fattore di approssimazione epsilon: " + epsilon);
 //        System.out.println();
 //        System.out.println("Reading...");
-//        List<Edge> edges = Utility.fileToGraph(filename);
+//        List<Edge> edges = Utility.fileToEdge(filename);
 //        System.out.println("Read ok");
-//        System.out.println("Edge size: " + edges.size());
+//        System.out.println("Numero di nodi: " + (int) nNodes);
+//        System.out.println("Numero di archi: " + edges.size());
 //        System.out.println();
 //        System.out.println("Read MutableGraph...");
 //        MutableGraph<Integer> mutableGraph = Utility.parseGuava(filename);
@@ -84,14 +85,14 @@ public class DegreeBenchmark {
 //        long time = TimeUnit.NANOSECONDS.toMillis(endTimeP - startTimeP);
 //        System.out.println("Parallel Degree Time: " + time + " ms");
 //        System.out.println("Parallel Density: " + dP);
-
+//
 //        System.out.println("Speedup: " + (timeS / time));
 
         Options opts = new OptionsBuilder()
             .include(DegreeBenchmark.class.getSimpleName())
             .warmupIterations(10)
             .measurementIterations(10)
-            .forks(1)
+            .forks(3)
             .mode(Mode.SingleShotTime)
             .measurementBatchSize(1)
             .timeUnit(TimeUnit.MILLISECONDS)
@@ -101,6 +102,7 @@ public class DegreeBenchmark {
 
 //        System.out.println("Sequential Density: " + dS);
 //        System.out.println("Parallel Density: " + dP);
+
     }
 
     @Benchmark
@@ -118,6 +120,7 @@ public class DegreeBenchmark {
         UndirectedGraphSeq seq = new UndirectedGraphSeq(edges);
         double d = seq
             .densestSubgraph(epsilon);
+
         System.out.println("Sequential density: " + d);
         return d;
     }
@@ -139,11 +142,11 @@ public class DegreeBenchmark {
 
     @Setup(Level.Trial)
         public void setup() {
-        //    Local
-        //String filename = "data/dummy_graph.txt";
-        //String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
+        // Local
+//        String filename = "data/dummy_graph.txt";
+//        String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
 //        String filename = "data/ca-GrQc.txt";
-        //String filename = "data/facebook_combined.txt";
+//        String filename = "data/facebook_combined.txt";
 //        String filename = "data/ca-CondMat.txt";
 //        String filename = "data/cit-HepTh.txt";
 //        String filename = "data/ca-HepPh.txt";
@@ -151,11 +154,10 @@ public class DegreeBenchmark {
         String filename = "data/ca-AstroPh.txt";
 //        String filename = "data/roadNet-CA.txt";
 //        String filename = "data/as-skitter.txt";
-        //String filename = "data/cit-Patents.txt";
+//        String filename = "data/cit-Patents.txt";
 //        String filename = "data/wiki-topcats.txt";
-        //String filename = "com-lj.ungraph.txt";
-        //String filename = "com-orkut.ungraph.txt";
-        //logger.debug("Filename: " + filename);
+//        String filename = "com-lj.ungraph.txt";
+//        String filename = "com-orkut.ungraph.txt";
         edges = Utility.fileToEdge(filename);
         epsilon = 0d;
         System.out.println(epsilon);
