@@ -25,7 +25,8 @@ public class DegreeBenchmark {
 
     //private static final Logger logger = LoggerFactory.getLogger(DegreeBenchmark.class);
     private List<Edge> edges;
-
+    @Param({"data/CA-CondMat.txt"})
+    private String filename;
     private double epsilon;
 
     public static void main(String[] args) throws RunnerException, IOException {
@@ -93,6 +94,7 @@ public class DegreeBenchmark {
             .warmupIterations(10)
             .measurementIterations(10)
             .forks(3)
+            .param("filename", args[0])
             .mode(Mode.SingleShotTime)
             .measurementBatchSize(1)
             .timeUnit(TimeUnit.MILLISECONDS)
@@ -151,7 +153,7 @@ public class DegreeBenchmark {
 //        String filename = "data/cit-HepTh.txt";
 //        String filename = "data/ca-HepPh.txt";
 //        String filename = "data/email-Enron.txt";
-        String filename = "data/ca-AstroPh.txt";
+        //String filename = "data/ca-AstroPh.txt";
 //        String filename = "data/roadNet-CA.txt";
 //        String filename = "data/as-skitter.txt";
 //        String filename = "data/cit-Patents.txt";
