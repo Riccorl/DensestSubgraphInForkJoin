@@ -1,21 +1,24 @@
 package it.ric.uny.densestsubgraph;
 
-import com.google.common.graph.MutableGraph;
 import it.ric.uny.densestsubgraph.model.Edge;
 import it.ric.uny.densestsubgraph.utils.Utility;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import org.openjdk.jmh.annotations.*;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.openjdk.jmh.runner.options.TimeValue;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @Fork(1)
@@ -23,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.All)
 public class DegreeBenchmark {
 
-    //private static final Logger logger = LoggerFactory.getLogger(DegreeBenchmark.class);
     private List<Edge> edges;
     @Param({"data/CA-CondMat.txt"})
     private String filename;
@@ -127,41 +129,9 @@ public class DegreeBenchmark {
         return d;
     }
 
-//    @Benchmark
-//    public Map<Integer, Set<Integer>> parallelDegree() {
-//        UndirectedGraph parallel = new UndirectedGraph(edges);
-//        parallel.setCutoffDegree(1000);
-//        return parallel
-//            .nodesDegree(parallel.getEdges(), (int) parallel.getNEdges() / 2);
-//    }
-//
-//    @Benchmark
-//    public Map<Integer, Set<Integer>> sequentialDegree() {
-//        UndirectedGraphSeq seq = new UndirectedGraphSeq(edges);
-//        return seq.degreeSeq(seq.getEdges());
-//    }
-
-
     @Setup(Level.Trial)
-        public void setup() {
-        // Local
-//        String filename = "data/dummy_graph.txt";
-//        String filename = "data/dummy_graph2.txt";            float nEdge = 11;         float nNode = 8;
-//        String filename = "data/ca-GrQc.txt";
-//        String filename = "data/facebook_combined.txt";
-//        String filename = "data/ca-CondMat.txt";
-//        String filename = "data/cit-HepTh.txt";
-//        String filename = "data/ca-HepPh.txt";
-//        String filename = "data/email-Enron.txt";
-        //String filename = "data/ca-AstroPh.txt";
-//        String filename = "data/roadNet-CA.txt";
-//        String filename = "data/as-skitter.txt";
-//        String filename = "data/cit-Patents.txt";
-//        String filename = "data/wiki-topcats.txt";
-//        String filename = "com-lj.ungraph.txt";
-//        String filename = "com-orkut.ungraph.txt";
+    public void setup() {
         edges = Utility.fileToEdge(filename);
         epsilon = 0d;
-        System.out.println(epsilon);
     }
 }

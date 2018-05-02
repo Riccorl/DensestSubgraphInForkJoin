@@ -1,73 +1,72 @@
 package it.ric.uny.densestsubgraph.parallel;
 
 import it.ric.uny.densestsubgraph.model.Edge;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.RecursiveAction;
+import java.util.Map;
+import java.util.concurrent.RecursiveTask;
 
 // Modifica con ConcurrentHashMap
 // Source Code: https://goo.gl/tZqrkB
 // Link utili:
 // https://howtodoinjava.com/core-java/multi-threading/best-practices-for-using-concurrenthashmap/
 
-public class ParallelDegree extends RecursiveAction {
+public class ParallelDegree extends RecursiveTask<Map<Integer, Integer>> {
 
-    private static final int CUTOFF = 5000;
+    private static final int CUTOFF = 40000;
 
     // ArrayList contenente gli archi
     private List<Edge> edges;
-    //private Edge[] edges;
-    // Mappa (u, deg(u))
-    private ConcurrentHashMap<Integer, Set<Integer>> degreeMap;
 
     private int start;
     private int end;
 
-    public ParallelDegree(List<Edge> edges, ConcurrentHashMap<Integer, Set<Integer>> degreeMap) {
+    public ParallelDegree(List<Edge> edges) {
         this.edges = edges;
-        this.degreeMap = degreeMap;
         this.end = edges.size();
     }
 
-    private ParallelDegree(List<Edge> edges,
-        ConcurrentHashMap<Integer, Set<Integer>> degreeMap, int start, int end) {
+    private ParallelDegree(List<Edge> edges, int start,
+        int end) {
         this.edges = edges;
-        this.degreeMap = degreeMap;
         this.start = start;
         this.end = end;
     }
 
     @Override
-    protected void compute() {
+    protected Map<Integer, Integer> compute() {
 
         // Sequential
         if (end - start < CUTOFF) {
+            Map<Integer, Integer> degreeMap = new HashMap<>();
             for (int i = start; i < end; i++) {
                 // Nodo da aggiornare
                 int u = edges.get(i).getU();
                 int v = edges.get(i).getV();
 
-                if (degreeMap.putIfAbsent(u, new HashSet<>()) != null) {
-                    degreeMap.get(u).add(v);
-                }
+                // Se i nodi non sono presenti, aggiungili con grado 0
+                degreeMap.putIfAbsent(u, 0);
+                degreeMap.putIfAbsent(v, 0);
 
-                if (degreeMap.putIfAbsent(v, new HashSet<>()) != null) {
-                    degreeMap.get(v).add(u);
-                }
+                int degU = degreeMap.get(u);
+                degreeMap.put(u, degU + 1);
+
+                int degV = degreeMap.get(v);
+                degreeMap.put(v, degV + 1);
             }
-            return;
+            return degreeMap;
         }
 
         // Parallel
         int mid = (start + end) / 2;
 
-        ParallelDegree left = new ParallelDegree(edges, degreeMap, start, mid);
-        ParallelDegree right = new ParallelDegree(edges, degreeMap, mid, end);
+        ParallelDegree left = new ParallelDegree(edges, start, mid);
+        ParallelDegree right = new ParallelDegree(edges, mid, end);
 
         left.fork();
-        right.compute();
-        left.join();
+        Map<Integer, Integer> rightMap = right.compute();
+        Map<Integer, Integer> leftMap = left.join();
+        rightMap.forEach((k, v) -> leftMap.merge(k, v, Integer::sum));
+        return leftMap;
     }
 }

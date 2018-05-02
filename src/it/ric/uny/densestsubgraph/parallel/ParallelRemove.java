@@ -9,7 +9,7 @@ import java.util.concurrent.RecursiveTask;
 
 public class ParallelRemove extends RecursiveTask<List<Edge>> {
 
-    private static final int CUTOFF = 5000;
+    private static final int CUTOFF = 40000;
 
     private List<Edge> edges;
     private Map<Integer, Integer> degreeS;

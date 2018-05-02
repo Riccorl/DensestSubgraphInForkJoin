@@ -2,23 +2,13 @@ package it.ric.uny.densestsubgraph;
 
 import it.ric.uny.densestsubgraph.model.Edge;
 import it.ric.uny.densestsubgraph.parallel.ParallelDegree;
-import it.ric.uny.densestsubgraph.parallel.ParallelDegreeTwo;
 import it.ric.uny.densestsubgraph.parallel.ParallelRemove;
-import it.ric.uny.densestsubgraph.utils.Utility;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import lombok.Data;
-
-// Modifica con ConcurrentHashMap
-// Source Code: https://goo.gl/tZqrkB
-// Link utili:
-// https://howtodoinjava.com/core-java/multi-threading/best-practices-for-using-concurrenthashmap/
 
 @Data
 public class UndirectedGraph {
@@ -29,50 +19,50 @@ public class UndirectedGraph {
     private double nNodes;
     // ArrayList di archi
     private List<Edge> edges;
-    //private Edge[] edges;
+    // Mappa dei gradi dei nodi
+    private Map<Integer, Integer> degreesMap;
     // Nodi sottografo più denso
     private Set<Integer> sTilde;
     // Densita del grafo più denso
     private double density;
-    // Mappa concorrente dei gradi
-    //private ConcurrentHashMap<Integer, Set<Integer>> degreesMap;
-    private Map<Integer, Integer> degreesMap;
-
-    public UndirectedGraph(List<Edge> edges, int nNodes) {
-        this.edges = new ArrayList<>(edges);
-        this.nEdges = edges.size();
-        this.degreesMap = new ConcurrentHashMap<>(nNodes, 0.75f, 64);
-    }
 
     public UndirectedGraph(List<Edge> edges) {
-        this(edges, 1000000);
+        this.edges = new ArrayList<>(edges);
+        this.nEdges = edges.size();
     }
 
     /**
      * Wrapper per il metodo del calcolo del sottografo più denso
-     * @param e     epsilon
-     * @return      la densità del sottografo più denso
+     *
+     * @param e epsilon
+     * @return la densità del sottografo più denso
      */
     public double densestSubgraph(double e) {
-        degreesMap = this.nodesDegreeTwo(edges);
+        degreesMap = this.nodesDegree(edges);
         return densestSubgraph(edges, degreesMap, e);
     }
 
 
+    /**
+     * Calcola la densità del sottografo più denso
+     * @param edges     lista di arcchi
+     * @param degreeS   mappa del grado dei nodi
+     * @param e         fattore di approssimazione
+     * @return          densità del sottografo più denso
+     */
     private double densestSubgraph(List<Edge> edges,
         Map<Integer, Integer> degreeS, double e) {
         // Densità attuale
         double dS = calcDensity(edges.size(), degreeS.keySet().size());
         double dSTilde = dS;
-        // Itera sugli archi alla ricerca di nodi con grado inferiore a 2*(1 + e) * d(S)
+        // Itera sugli archi alla ricerca di nodi con grado inferiore a 2 * (1 + e) * d(S)
         while (!edges.isEmpty()) {
 
             double threshold = 2.0 * (1.0 + e) * dS;
             // Rimuove gli archi tra nodi che hanno grado <= 2*(1 + e) * d(S)
             edges = this.removeEdges(edges, degreeS, threshold);
             // Ricalcola grado di ogni nodo, fork/join
-            //degreeS = this.nodesDegree(edges);
-            degreeS = this.nodesDegreeTwo(edges);
+            degreeS = this.nodesDegree(edges);
             // Ricalcola densità attuale
             dS = calcDensity(edges.size(), degreeS.keySet().size());
             // Se la nuova densità è maggiore della massima fino ad ora ->
@@ -86,45 +76,26 @@ public class UndirectedGraph {
         return density;
     }
 
+    /**
+     * Rimuove gli archi che hanno almeno un nodo con grado inferiore a threshold
+     *
+     * @param edges         lista di archi
+     * @param degreeS       mappa del grado dei nodi
+     * @param threshold     soglia minima del grado dei nodi
+     * @return              la lista degli archi aggiornata
+     */
     private List<Edge> removeEdges(List<Edge> edges,
         Map<Integer, Integer> degreeS, double threshold) {
         return ForkJoinPool.commonPool().invoke(new ParallelRemove(edges, degreeS, threshold));
     }
 
-    private ConcurrentHashMap<Integer, Set<Integer>> nodesDegree(List<Edge> edges) {
-
-        // Degrees map
-        ConcurrentHashMap<Integer, Set<Integer>> degreesMap =
-            new ConcurrentHashMap<>((int) nNodes, 0.75f, 64);
-        // Do parallel
-        ForkJoinPool.commonPool()
-            .invoke(new ParallelDegree(edges, degreesMap));
-        // Return results
-        return degreesMap;
-    }
-
-    private Map<Integer, Integer> nodesDegreeTwo(List<Edge> edges) {
-        // Do parallel
-        return ForkJoinPool.commonPool()
-            .invoke(new ParallelDegreeTwo(edges));
-    }
-
-    public ConcurrentHashMap<Integer, Set<Integer>> degreeSeq(List<Edge> edges) {
-        ConcurrentHashMap<Integer, Set<Integer>> degreesMap = new ConcurrentHashMap<>();
-        for (Edge e : edges) {
-            degreesMap.putIfAbsent(e.getU(), new HashSet<>());
-            degreesMap.putIfAbsent(e.getV(), new HashSet<>());
-
-            degreesMap.get(e.getU()).add(e.getV());
-            degreesMap.get(e.getV()).add(e.getU());
-        }
-
-        return degreesMap;
-    }
-
-    public int degree(int n) {
-        //return degrees[n];
-        return degreesMap.get(n);
+    /**
+     * Calcola il grado dei nodi a partire dagli archi
+     * @param edges     lista di archi
+     * @return          Mappa del grado dei nodi, nella forma (u, deg(u))
+     */
+    private Map<Integer, Integer> nodesDegree(List<Edge> edges) {
+        return ForkJoinPool.commonPool().invoke(new ParallelDegree(edges));
     }
 
     /**
