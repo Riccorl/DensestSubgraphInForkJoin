@@ -15,6 +15,7 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -27,7 +28,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 public class DegreeBenchmark {
 
     private List<Edge> edges;
-    @Param({"data/CA-CondMat.txt"})
+    @Param({"data/ca-AstroPh.txt"})
     private String filename;
     private double epsilon;
 
@@ -97,6 +98,8 @@ public class DegreeBenchmark {
             .measurementIterations(10)
             .forks(3)
             .param("filename", args[0])
+            .resultFormat(ResultFormatType.CSV)
+            .result("res_" + args[0] + ".csv")
             .mode(Mode.SingleShotTime)
             .measurementBatchSize(1)
             .timeUnit(TimeUnit.MILLISECONDS)
@@ -132,6 +135,6 @@ public class DegreeBenchmark {
     @Setup(Level.Trial)
     public void setup() {
         edges = Utility.fileToEdge(filename);
-        epsilon = 0d;
+        epsilon = 0.001d;
     }
 }

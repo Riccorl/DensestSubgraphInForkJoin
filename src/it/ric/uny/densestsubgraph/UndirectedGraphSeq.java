@@ -64,6 +64,13 @@ public class UndirectedGraphSeq implements Graph {
         return density;
     }
 
+    /**
+     * Rimuove gli archi che hanno almeno un nodo con grado <= 2 * (1 + e) * d(S)
+     * @param edges         lista di archi
+     * @param degreeS       mappa del grado dei nodi
+     * @param threshold     soglia minima del grado
+     * @return              la lista degli archi aggiornata
+     */
     public List<Edge> removeEdges(List<Edge> edges, Map<Integer, Set<Integer>> degreeS,
         double threshold) {
         List<Edge> newEdge = new ArrayList<>();
@@ -78,6 +85,11 @@ public class UndirectedGraphSeq implements Graph {
         return newEdge;
     }
 
+    /**
+     * Calcola il grado dei nodi a partire dagli archi
+     * @param edges     lista degli archi
+     * @return          Mappa del grado dei nodi, nella forma (u, deg(u))
+     */
     public Map<Integer, Set<Integer>> degreeSeq(List<Edge> edges) {
         Map<Integer, Set<Integer>> degreesMap = new HashMap<>();
         for (Edge e : edges) {
