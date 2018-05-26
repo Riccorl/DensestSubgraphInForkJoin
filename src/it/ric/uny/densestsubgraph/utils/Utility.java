@@ -91,7 +91,6 @@ public class Utility {
         Pattern pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
 
         Set<Edge> edgeSet = new HashSet<>();
-        int c = 0;
         try (BufferedReader br = newBufferedReader(Paths.get(filename), StandardCharsets.UTF_8)) {
             for (String line = null; (line = br.readLine()) != null; ) {
 
@@ -100,7 +99,7 @@ public class Utility {
                     int u = Integer.parseInt(matcher.group(1));
                     int v = Integer.parseInt(matcher.group(2));
 
-                    Edge e = new Edge(u,v);
+                    Edge e = new Edge(u, v);
                     edgeSet.add(e);
                 }
             }

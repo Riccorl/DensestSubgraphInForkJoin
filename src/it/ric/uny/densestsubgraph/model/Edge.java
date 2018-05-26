@@ -1,6 +1,5 @@
 package it.ric.uny.densestsubgraph.model;
 
-import com.google.common.base.Objects;
 import lombok.Data;
 
 @Data
@@ -39,7 +38,7 @@ public class Edge {
     @Override
     public int hashCode() {
         int result = 17;
-        result = 31 * result + (u*v);
+        result = 31 * result + (u * v);
         return result;
     }
 }

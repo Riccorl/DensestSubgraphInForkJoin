@@ -4,12 +4,11 @@ import it.ric.uny.densestsubgraph.model.Edge;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.RecursiveTask;
 
 public class ParallelRemove extends RecursiveTask<List<Edge>> {
 
-    private static final int CUTOFF = 40000;
+    private static final int CUTOFF = 50000;
 
     private List<Edge> edges;
     private Map<Integer, Integer> degreeS;

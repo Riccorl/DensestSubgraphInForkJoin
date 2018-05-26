@@ -13,9 +13,8 @@ import java.util.concurrent.RecursiveTask;
 
 public class ParallelDegree extends RecursiveTask<Map<Integer, Integer>> {
 
-    private static final int CUTOFF = 40000;
+    private static final int CUTOFF = 70000;
 
-    // ArrayList contenente gli archi
     private List<Edge> edges;
 
     private int start;
@@ -40,19 +39,15 @@ public class ParallelDegree extends RecursiveTask<Map<Integer, Integer>> {
         if (end - start < CUTOFF) {
             Map<Integer, Integer> degreeMap = new HashMap<>();
             for (int i = start; i < end; i++) {
-                // Nodo da aggiornare
+                // Nodes to update
                 int u = edges.get(i).getU();
                 int v = edges.get(i).getV();
 
-                // Se i nodi non sono presenti, aggiungili con grado 0
                 degreeMap.putIfAbsent(u, 0);
                 degreeMap.putIfAbsent(v, 0);
 
-                int degU = degreeMap.get(u);
-                degreeMap.put(u, degU + 1);
-
-                int degV = degreeMap.get(v);
-                degreeMap.put(v, degV + 1);
+                degreeMap.put(u, degreeMap.get(u) + 1);
+                degreeMap.put(v, degreeMap.get(v) + 1);
             }
             return degreeMap;
         }

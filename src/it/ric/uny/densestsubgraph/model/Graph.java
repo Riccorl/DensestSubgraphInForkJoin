@@ -1,4 +1,4 @@
-package it.ric.uny.densestsubgraph;
+package it.ric.uny.densestsubgraph.model;
 
 public interface Graph {
 
