@@ -33,15 +33,15 @@ public class ComputeDensest {
         System.out.println("Approximation factor epsilon: " + epsilon);
         System.out.println();
         System.out.println("Reading...");
-        List<Edge> edges = Utility.fileToEdge(filename);
+        var edges = Utility.fileToEdge(filename);
         System.out.println("Read ok");
         System.out.println("Number of nodes: " + (int) nNodes);
         System.out.println("Number of edges: " + edges.size());
         System.out.println();
 
-        Densest densest = new Densest();
+        var densest = new Densest();
         // --------------------------------- Sequential -------------------------------------------
-        UndirectedGraph graph = new UndirectedGraph(edges);
+        var graph = new UndirectedGraph(edges);
         long startTime = System.nanoTime();
         double dS = densest.densestSubgraphSequential(graph, epsilon);
         long endTime = System.nanoTime();

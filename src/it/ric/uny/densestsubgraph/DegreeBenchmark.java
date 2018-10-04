@@ -3,7 +3,6 @@ package it.ric.uny.densestsubgraph;
 import it.ric.uny.densestsubgraph.model.Edge;
 import it.ric.uny.densestsubgraph.model.UndirectedGraph;
 import it.ric.uny.densestsubgraph.utils.Utility;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -45,7 +44,7 @@ public class DegreeBenchmark {
             .forks(1)
             .param("filename", "data/ca-AstroPh.txt")
             .resultFormat(ResultFormatType.CSV)
-            .result("res_" + filename + "_e_1" +".csv")
+            .result("res_" + filename + "_e_1" + ".csv")
             .mode(Mode.SingleShotTime)
             .measurementBatchSize(1)
             .timeUnit(TimeUnit.MILLISECONDS)

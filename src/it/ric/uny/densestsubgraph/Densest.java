@@ -22,7 +22,7 @@ public class Densest {
      * @return density of the densest subgraph
      */
     public double densestSubgraphParallel(UndirectedGraph graph, double e) {
-        Map<Integer, Integer> degreesMap = this.nodesDegreeParallel(graph.getEdges());
+        var degreesMap = this.nodesDegreeParallel(graph.getEdges());
         return densestSubgraphParallel(graph.getEdges(), degreesMap, e);
     }
 
@@ -42,8 +42,7 @@ public class Densest {
         double dSTilde = dS;
         // Search for edges with at least one node that have degree <= 2 * (1 + e) * d(S)
         while (!edges.isEmpty()) {
-
-            double threshold = 2.0 * (1.0 + e) * dS;
+            var threshold = 2.0 * (1.0 + e) * dS;
             // Removes edges with one node wth degree <= 2*(1 + e) * d(S)
             edges = this.removeEdgesParallel(edges, degreeS, threshold);
             // Computes degree of each node
@@ -52,9 +51,7 @@ public class Densest {
             dS = (double) edges.size() / (double) degreeS.keySet().size();
             // If the new density is greater than max ->
             //      update max density
-            if (dS > dSTilde) {
-                dSTilde = dS;
-            }
+            if (dS > dSTilde) dSTilde = dS;
         }
         return dSTilde;
     }
@@ -92,7 +89,7 @@ public class Densest {
      * @return density of the densest subgraph
      */
     public double densestSubgraphSequential(UndirectedGraph graph, double e) {
-        Map<Integer, Integer> degreeS = this.nodesDegreeSequential(graph.getEdges());
+        var degreeS = this.nodesDegreeSequential(graph.getEdges());
         return densestSubgraphSequential(graph.getEdges(), degreeS, e);
     }
 
@@ -104,16 +101,14 @@ public class Densest {
      * @param e approximation factor
      * @return density of the densest subgraph
      */
-    private double densestSubgraphSequential(List<Edge> edges, Map<Integer, Integer> degreeS,
-        double e) {
-
+    private double densestSubgraphSequential(List<Edge> edges,
+        Map<Integer, Integer> degreeS, double e) {
         // Actual density
-        double dS = (double) edges.size() / (double) degreeS.keySet().size();
-        double dSTilde = dS;
+        var dS = (double) edges.size() / (double) degreeS.keySet().size();
+        var dSTilde = dS;
         // Search for edges with at least one node that have degree <= 2 * (1 + e) * d(S)
         while (!edges.isEmpty()) {
-
-            double threshold = 2.0 * (1.0 + e) * dS;
+            var threshold = 2.0 * (1.0 + e) * dS;
             // Removes edges with one node wth degree <= 2*(1 + e) * d(S)
             edges = this.removeEdgesSequential(edges, degreeS, threshold);
             // Computes degree of each node
@@ -122,9 +117,7 @@ public class Densest {
             dS = (double) edges.size() / (double) degreeS.keySet().size();
             // If the new density is greater than max ->
             //      update max density
-            if (dS > dSTilde) {
-                dSTilde = dS;
-            }
+            if (dS > dSTilde) dSTilde = dS;
         }
         return dSTilde;
     }
@@ -137,16 +130,14 @@ public class Densest {
      * @param threshold 2 * (1 + e) * d(S)
      * @return updated list of edges
      */
-    public List<Edge> removeEdgesSequential(List<Edge> edges, Map<Integer, Integer> degreeS,
-        double threshold) {
-        List<Edge> newEdge = new ArrayList<>();
-        for (Edge edge : edges) {
-            int u = edge.getU();
-            int v = edge.getV();
-
-            if (degreeS.get(u) > threshold && degreeS.get(v) > threshold) {
+    public List<Edge> removeEdgesSequential(List<Edge> edges,
+        Map<Integer, Integer> degreeS, double threshold) {
+        var newEdge = new ArrayList<Edge>();
+        for (var edge : edges) {
+            var u = edge.getU();
+            var v = edge.getV();
+            if (degreeS.get(u) > threshold && degreeS.get(v) > threshold)
                 newEdge.add(edge);
-            }
         }
         return newEdge;
     }
@@ -158,15 +149,14 @@ public class Densest {
      * @return map (node, deg(node))
      */
     public Map<Integer, Integer> nodesDegreeSequential(List<Edge> edges) {
-        Map<Integer, Integer> degreesMap = new HashMap<>();
-        for (Edge e : edges) {
+        var degreesMap = new HashMap<Integer, Integer>();
+        for (var e : edges) {
             degreesMap.putIfAbsent(e.getU(), 0);
             degreesMap.putIfAbsent(e.getV(), 0);
 
             degreesMap.put(e.getU(), degreesMap.get(e.getU()) + 1);
             degreesMap.put(e.getV(), degreesMap.get(e.getV()) + 1);
         }
-
         return degreesMap;
     }
 

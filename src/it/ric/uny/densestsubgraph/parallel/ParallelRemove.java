@@ -16,18 +16,16 @@ public class ParallelRemove extends RecursiveTask<List<Edge>> {
     private int end;
     private double threshold;
 
-    public ParallelRemove(List<Edge> edges, Map<Integer, Integer> degreeS,
-        double threshold) {
-
+    public ParallelRemove(List<Edge> edges,
+        Map<Integer, Integer> degreeS, double threshold) {
         this.edges = edges;
         this.end = edges.size();
         this.degreeS = degreeS;
         this.threshold = threshold;
     }
 
-    private ParallelRemove(List<Edge> edges, Map<Integer, Integer> degreeS, int start,
-        int end, double threshold) {
-
+    private ParallelRemove(List<Edge> edges,
+        Map<Integer, Integer> degreeS, int start, int end, double threshold) {
         this.edges = edges;
         this.degreeS = degreeS;
         this.start = start;
@@ -37,33 +35,27 @@ public class ParallelRemove extends RecursiveTask<List<Edge>> {
 
     @Override
     protected List<Edge> compute() {
-
         // Sequential
         if (end - start < CUTOFF) {
             List<Edge> newEdges = new ArrayList<>(end - start);
-            for (int i = start; i < end; i++) {
-                Edge edge = edges.get(i);
-                int u = edge.getU();
-                int v = edge.getV();
-
-                if (degreeS.get(u) > threshold && degreeS.get(v) > threshold) {
+            for (var i = start; i < end; i++) {
+                var edge = edges.get(i);
+                var u = edge.getU();
+                var v = edge.getV();
+                if (degreeS.get(u) > threshold && degreeS.get(v) > threshold)
                     newEdges.add(edge);
-                }
             }
             return newEdges;
         }
-
         // Parallel
         int mid = (start + end) / 2;
-
-        ParallelRemove left = new ParallelRemove(edges, degreeS, start, mid, threshold);
-        ParallelRemove right = new ParallelRemove(edges, degreeS, mid, end, threshold);
+        var left = new ParallelRemove(edges, degreeS, start, mid, threshold);
+        var right = new ParallelRemove(edges, degreeS, mid, end, threshold);
 
         left.fork();
-        List<Edge> rightArray = right.compute();
-        List<Edge> leftArray = left.join();
+        var rightArray = right.compute();
+        var leftArray = left.join();
         leftArray.addAll(rightArray);
-
         return leftArray;
     }
 }

@@ -8,6 +8,7 @@ import it.ric.uny.densestsubgraph.model.Edge;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,17 +27,15 @@ public class Utility {
 
     public static void filter(List<Edge> list, Map<Integer, Set<Integer>> degreeS,
         double threshold) {
-        int inputSize = list.size();
-        int outputSize = 0;
+        var inputSize = list.size();
+        var outputSize = 0;
 
-        for (int i = 0; i < inputSize; ++i) {
-            Edge e = list.get(i);
-            int u = e.getU();
-            int v = e.getV();
-
-            if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold) {
+        for (var i = 0; i < inputSize; ++i) {
+            var e = list.get(i);
+            var u = e.getU();
+            var v = e.getV();
+            if (degreeS.get(u).size() > threshold && degreeS.get(v).size() > threshold)
                 list.set(outputSize++, e);
-            }
         }
         list.subList(outputSize, inputSize).clear();
     }
@@ -44,10 +43,10 @@ public class Utility {
     public static double round(double x, int numberofDecimals) {
         if (x > 0) {
             return new BigDecimal(String.valueOf(x))
-                .setScale(numberofDecimals, BigDecimal.ROUND_FLOOR).doubleValue();
+                .setScale(numberofDecimals, RoundingMode.FLOOR).doubleValue();
         } else {
             return new BigDecimal(String.valueOf(x))
-                .setScale(numberofDecimals, BigDecimal.ROUND_CEILING).doubleValue();
+                .setScale(numberofDecimals, RoundingMode.CEILING).doubleValue();
         }
     }
 
@@ -61,16 +60,10 @@ public class Utility {
         try (BufferedReader br = newBufferedReader(Paths.get(filename),
             StandardCharsets.UTF_8)) {
             for (String line = null; (line = br.readLine()) != null; ) {
-
-                if (line.startsWith(COMMENT_CHAR)) {
-                    continue;
-                }
-
-                String[] row = line.split("\\s+");
-
-                int u = Integer.parseInt(row[0]);
-                int v = Integer.parseInt(row[1]);
-
+                if (line.startsWith(COMMENT_CHAR)) continue;
+                var row = line.split("\\s+");
+                var u = Integer.parseInt(row[0]);
+                var v = Integer.parseInt(row[1]);
                 edges.add(new Edge(u, v));
             }
         } catch (IOException e) {
@@ -88,18 +81,15 @@ public class Utility {
      */
     public static List<Edge> fileToEdge(String filename) {
 
-        Pattern pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
-
-        Set<Edge> edgeSet = new HashSet<>();
+        var pattern = Pattern.compile("^([\\d]*)\\s([\\d]*)");
+        var edgeSet = new HashSet<Edge>();
         try (BufferedReader br = newBufferedReader(Paths.get(filename), StandardCharsets.UTF_8)) {
             for (String line = null; (line = br.readLine()) != null; ) {
-
-                Matcher matcher = pattern.matcher(line);
+                var matcher = pattern.matcher(line);
                 if (matcher.matches()) {
-                    int u = Integer.parseInt(matcher.group(1));
-                    int v = Integer.parseInt(matcher.group(2));
-
-                    Edge e = new Edge(u, v);
+                    var u = Integer.parseInt(matcher.group(1));
+                    var v = Integer.parseInt(matcher.group(2));
+                    var e = new Edge(u, v);
                     edgeSet.add(e);
                 }
             }
@@ -112,12 +102,10 @@ public class Utility {
     public static MutableGraph<Integer> parseGuava(String filename) throws IOException {
         MutableGraph<Integer> graph = GraphBuilder.undirected().allowsSelfLoops(true).build();
 
-        try (Stream<String> stream = Files.lines(Paths.get(filename))) {
+        try (var stream = Files.lines(Paths.get(filename))) {
             stream.forEach(x -> {
-                if (x.startsWith(COMMENT_CHAR)) {
-                    return;
-                }
-                String[] row = x.split("\\s+");
+                if (x.startsWith(COMMENT_CHAR)) return;
+                var row = x.split("\\s+");
                 graph.putEdge(Integer.parseInt(row[0]), Integer.parseInt(row[1]));
             });
             return graph;
